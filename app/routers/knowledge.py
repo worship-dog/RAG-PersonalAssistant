@@ -1,0 +1,34 @@
+from fastapi import APIRouter, Depends
+
+from app.utils import get_db
+
+
+router = APIRouter(
+    tags=["knowledge"],
+    dependencies=[Depends(get_db)]
+)
+
+
+@router.post("/knowledge")
+def create_knowledge():
+    pass
+
+
+@router.get("/knowledge")
+def get_knowledge():
+    pass
+
+
+@router.put("/knowledge")
+def edit_knowledge():
+    pass
+
+
+@router.delete("/knowledge")
+def del_knowledge():
+    pass
+
+
+@router.get("/knowledge/list")
+def get_knowledge_list():
+    pass

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column, String, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -17,6 +17,11 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # 模型基类
 Base = declarative_base()
+class BaseModel(Base):
+    __abstract__ = True
+    id = Column(String, primary_key=True, comment="主键uuid")
+    create_time = Column(TIMESTAMP, comment="创建时间")
+    update_time = Column(TIMESTAMP, comment="更新时间")
 
 # 依赖项
 def get_db():
