@@ -1,12 +1,27 @@
 from sys import modules
 
-from app.utils import get_config_obj
+from app.utils.dict2obj import get_config_obj
 
 
+llm_config = {
+    "source": (str, "ollama"),
+    "model": (str, "deepseek-r1:8b"),
+    "base_url": (str, "http://localhost:11434")
+}
 embeddings_config = {
     "source": (str, "ollama"),
     "model": (str, "bge-m3"),
     "base_url": (str, "http://localhost:11434")
+}
+
+db_config = {
+    "db_host": (str, "localhost"),
+    "db_port": (str, "5432"),
+    "db_name": (str, "db_personal_assistant"),
+    "username": (str, "admin"),
+    "password": (str, "admin123"),
+    "pool_size": (int, 10),
+    "max_overflow": (int, 20)
 }
 
 def get_config(config_name: str):

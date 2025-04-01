@@ -1,4 +1,5 @@
 fastapi == 0.115.12
+langchain-core==0.3.47
 langchain_ollama == 0.3.0
 langchain_postgres == 0.0.13
 psycopg2-binary == 2.9.10

@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, JSON
+from sqlalchemy import Column, String, JSON
 
-from app.utils import BaseModel
+from app.utils.database import BaseModel
+
 
 class Knowledge(BaseModel):
     __tablename__ = "t_knowledge"
