@@ -1,3 +1,11 @@
+# -*- coding: UTF-8 -*-
+"""
+知识库文件表
+
+Author: worship-dog
+Email: worship76@foxmail.com>
+"""
+
 from sqlalchemy import Column, String, JSON
 
 from app.utils.database import BaseModel

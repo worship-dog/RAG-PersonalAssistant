@@ -1,3 +1,11 @@
+# -*- coding: UTF-8 -*-
+"""
+数据库连接
+
+Author: worship-dog
+Email: worship76@foxmail.com>
+"""
+
 from sqlalchemy import create_engine, Column, String, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker

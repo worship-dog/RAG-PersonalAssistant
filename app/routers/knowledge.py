@@ -1,3 +1,11 @@
+# -*- coding: UTF-8 -*-
+"""
+知识库文件管理
+
+Author: worship-dog
+Email: worship76@foxmail.com>
+"""
+
 from fastapi import APIRouter, Depends
 
 from app.utils.database import get_db

@@ -1,3 +1,11 @@
+# -*- coding: UTF-8 -*-
+"""
+初始化嵌入模型
+
+Author: worship-dog
+Email: worship76@foxmail.com>
+"""
+
 from langchain_ollama import OllamaEmbeddings
 
 from app.config import get_config
