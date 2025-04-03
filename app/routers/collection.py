@@ -8,12 +8,12 @@ Email: worship76@foxmail.com>
 
 from fastapi import APIRouter, Depends
 
-from app.utils.database import get_db
+from app.utils.database import get_sync_db, SyncSessionLocal
 
 
 router = APIRouter(
     tags=["collection"],
-    dependencies=[Depends(get_db)]
+    dependencies=[Depends(get_sync_db)]
 )
 
 
@@ -38,5 +38,5 @@ def del_collection():
 
 
 @router.get("/collection/list")
-def get_collection_list():
+def get_collection_list(session: SyncSessionLocal = Depends(get_sync_db)):
     pass

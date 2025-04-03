@@ -8,12 +8,12 @@ Email: worship76@foxmail.com>
 
 from fastapi import APIRouter, Depends
 
-from app.utils.database import get_db
+from app.utils.database import get_sync_db
 
 
 router = APIRouter(
     tags=["knowledge"],
-    dependencies=[Depends(get_db)]
+    dependencies=[Depends(get_sync_db)]
 )
 
 
