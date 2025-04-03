@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangChain 流式问答演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        #chat-container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        #output {
+            min-height: 200px;
+            border: 1px solid #eee;
+            padding: 10px;
+            margin: 20px 0;
+            background: white;
+            white-space: pre-wrap; /* 保留换行符 */
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #question {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #cccccc;
+        }
+        .question {
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .answer {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <h1>LangChain 流式问答</h1>
+        <div id="output"></div>
+        <div id="input-container">
+            <input type="text" id="question" placeholder="输入你的问题..." />
+            <button id="send-btn" onclick="sendQuestion()">发送</button>
+        </div>
+    </div>
+
+    <script>
+        const outputEl = document.getElementById("output");
+        const questionEl = document.getElementById("question");
+        const sendBtn = document.getElementById("send-btn");
+        let currentChatId = null; // 维护当前会话ID
+
+        // 发送问题到后端
+        async function sendQuestion() {
+            const question = questionEl.value.trim();
+            if (!question) return;
+
+            // 禁用按钮，防止重复提交
+            sendBtn.disabled = true;
+
+            // 清空输入框
+            questionEl.value = "";
+
+            // 展示用户问题
+            outputEl.innerHTML += `<div class="question">你：${question}</div>`;
+            outputEl.innerHTML += `<div class="answer" id="current-answer">模型：</div>`;
+
+            // 滚动到底部
+            outputEl.scrollTop = outputEl.scrollHeight;
+
+            // 获取流式响应
+            try {
+                await fetchStream(question);
+            } catch (err) {
+                console.error("请求出错:", err);
+                document.getElementById("current-answer").innerHTML += " [请求失败]";
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        // 流式获取回答
+        async function fetchStream(question) {
+            currentChatId = crypto.randomUUID(); // 生成新会话ID
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ question, chat_id: currentChatId }),
+            });
+
+            if (!response.ok) throw new Error("请求失败");
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            const answerEl = document.getElementById("current-answer");
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+
+                const chunk = decoder.decode(value);
+                // 处理SSE格式，检查ID是否匹配
+                if (chunk.includes(`id: ${currentChatId}`)) {
+                    const eventData =  chunk.match(/data: (.*)/)[1];
+                    answerEl.innerHTML += eventData;
+                }
+
+                // 滚动到底部
+                outputEl.scrollTop = outputEl.scrollHeight;
+            }
+        }
+
+        // 支持按Enter键发送
+        questionEl.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") sendQuestion();
+        });
+    </script>
+</body>
+</html>

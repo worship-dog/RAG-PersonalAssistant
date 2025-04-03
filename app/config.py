@@ -15,6 +15,7 @@ llm_config = {
     "model": (str, "deepseek-r1:8b"),
     "base_url": (str, "http://localhost:11434")
 }
+
 embeddings_config = {
     "source": (str, "ollama"),
     "model": (str, "bge-m3"),
