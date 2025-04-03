@@ -11,7 +11,8 @@ from sqlalchemy import Column, String, JSON
 from app.utils.database import BaseModel
 
 
-class Record(BaseModel):
-    __tablename__ = "t_record"
+class Chat(BaseModel):
+    __tablename__ = "t_chat"
 
     conversation_id = Column(String, comment="所属对话id")
+    chat_content = Column(JSON, comment="聊天内容")
