@@ -17,3 +17,4 @@ class LLM(BaseModel):
     source = Column(String, comment="大模型来源 ollama/openai/other")
     name = Column(String, comment="大模型名称")
     base_url = Column(String, comment="大模型服务地址")
+    api_key = Column(String, comment="大模型API密钥")

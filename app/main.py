@@ -17,7 +17,9 @@ app: FastAPI = FastAPI(lifespan=lifespan)
 app.include_router(chat_router)
 app.include_router(collection_router)
 app.include_router(conversation_router)
+app.include_router(embeddings_router)
 app.include_router(knowledge_router)
+app.include_router(llm_router)
 app.include_router(record_router)
 
 # 挂载静态文件目录

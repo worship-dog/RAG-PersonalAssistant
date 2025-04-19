@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-知识库文件表
+知识表，与知识库表关联，多条知识属于一个知识库
 
 Author: worship-dog
 Email: worship76@foxmail.com>

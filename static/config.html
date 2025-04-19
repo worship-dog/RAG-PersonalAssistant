@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>系统配置</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    .tab-content {
+      padding: 20px;
+      border-left: 1px solid #dee2e6;
+      border-right: 1px solid #dee2e6;
+      border-bottom: 1px solid #dee2e6;
+      border-radius: 0 0 5px 5px;
+    }
+
+    .model-card {
+      margin-bottom: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .model-card-header {
+      font-weight: bold;
+      background-color: #f8f9fa;
+      padding: 10px 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .model-card-body {
+      padding: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container-fluid mt-3">
+    <h2 class="mb-4">系统配置</h2>
+
+    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="llm-tab" data-bs-toggle="tab" data-bs-target="#llm" type="button"
+          role="tab">大模型管理</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="embedding-tab" data-bs-toggle="tab" data-bs-target="#embedding" type="button"
+          role="tab">嵌入模型管理</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="collection-tab" data-bs-toggle="tab" data-bs-target="#collection" type="button"
+          role="tab">知识库管理</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="configTabsContent">
+      <!-- 大模型管理 -->
+      <div class="tab-pane fade show active" id="llm" role="tabpanel">
+        <div class="d-flex justify-content-between mb-3">
+          <h4>大模型列表</h4>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addLLMModal">
+            <i class="bi bi-plus"></i> 添加大模型
+          </button>
+        </div>
+
+        <div id="llmList">
+          <!-- 大模型列表将通过JS动态加载 -->
+        </div>
+      </div>
+
+      <!-- 嵌入模型管理 -->
+      <div class="tab-pane fade" id="embedding" role="tabpanel">
+        <div class="d-flex justify-content-between mb-3">
+          <h4>嵌入模型列表</h4>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEmbeddingModal">
+            <i class="bi bi-plus"></i> 添加嵌入模型
+          </button>
+        </div>
+
+        <div id="embeddingList">
+          <!-- 嵌入模型列表将通过JS动态加载 -->
+        </div>
+      </div>
+
+      <!-- 知识库管理 -->
+      <div class="tab-pane fade" id="collection" role="tabpanel">
+        <div class="d-flex justify-content-between mb-3">
+          <h4>知识库列表</h4>
+          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollectionModal">
+            <i class="bi bi-plus"></i> 添加知识库
+          </button>
+        </div>
+
+        <div id="collectionList">
+          <!-- 知识库列表将通过JS动态加载 -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加大模型模态框 -->
+  <div class="modal fade" id="addLLMModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">添加大模型</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addLLMForm">
+            <div class="mb-3">
+              <label class="form-label">模型来源</label>
+              <select class="form-select" name="source" required>
+                <option value="ollama">Ollama</option>
+                <option value="openai">OpenAI</option>
+                <option value="other">其他</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">模型名称</label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">API密钥</label>
+              <input type="text" class="form-control" name="api_key">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">服务地址</label>
+              <input type="text" class="form-control" name="base_url" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" onclick="addLLM()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加嵌入模型模态框 -->
+  <div class="modal fade" id="addEmbeddingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">添加嵌入模型</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addEmbeddingForm">
+            <div class="mb-3">
+              <label class="form-label">模型来源</label>
+              <select class="form-select" name="source" required>
+                <option value="ollama">Ollama</option>
+                <option value="openai">OpenAI</option>
+                <option value="other">其他</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">模型名称</label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">服务地址</label>
+              <input type="text" class="form-control" name="base_url" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" onclick="addEmbedding()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加知识库模态框 -->
+  <div class="modal fade" id="addCollectionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">添加知识库</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="addCollectionForm">
+            <div class="mb-3">
+              <label class="form-label">知识库名称</label>
+              <input type="text" class="form-control" name="name" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">描述</label>
+              <textarea class="form-control" name="description" rows="3"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" onclick="addCollection()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 编辑模态框 (动态填充内容) -->
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalTitle">编辑</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body" id="editModalBody">
+          <!-- 内容将通过JS动态填充 -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" onclick="saveEdit()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // 页面加载时获取数据
+    document.addEventListener('DOMContentLoaded', function () {
+      loadLLMs();
+      loadEmbeddings();
+      loadCollections();
+    });
+
+    // 加载大模型列表
+    async function loadLLMs () {
+      try {
+        const response = await fetch('/llm/list');
+        const llms = await response.json();
+        const container = document.getElementById('llmList');
+        container.innerHTML = '';
+
+        llms.forEach(llm => {
+          const card = document.createElement('div');
+          card.className = 'card model-card';
+          card.innerHTML = `
+                        <div class="model-card-header d-flex justify-content-between">
+                            <span>${llm.name} (${llm.source})</span>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editLLM(${llm.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteLLM(${llm.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="model-card-body">
+                            <p><strong>服务地址:</strong> ${llm.base_url}</p>
+                            <p><strong>API密钥:</strong> ${llm.api_key ? '*****' : '无'}</p>
+                        </div>
+                    `;
+          container.appendChild(card);
+        });
+      } catch (error) {
+        console.error('加载大模型列表失败:', error);
+      }
+    }
+
+    // 加载嵌入模型列表
+    async function loadEmbeddings () {
+      try {
+        const response = await fetch('/embeddings/list');
+        const embeddings = await response.json();
+        const container = document.getElementById('embeddingList');
+        container.innerHTML = '';
+
+        embeddings.forEach(embedding => {
+          const card = document.createElement('div');
+          card.className = 'card model-card';
+          card.innerHTML = `
+                        <div class="model-card-header d-flex justify-content-between">
+                            <span>${embedding.name} (${embedding.source})</span>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editEmbedding(${embedding.id})">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteEmbedding(${embedding.id})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="model-card-body">
+                            <p><strong>服务地址:</strong> ${embedding.base_url}</p>
+                        </div>
+                    `;
+          container.appendChild(card);
+        });
+      } catch (error) {
+        console.error('加载嵌入模型列表失败:', error);
+      }
+    }
+
+    // 加载知识库列表
+    async function loadCollections () {
+      try {
+        const response = await fetch('/collection/list');
+        const collections = await response.json();
+        const container = document.getElementById('collectionList');
+        container.innerHTML = '';
+
+        collections.forEach(collection => {
+          const card = document.createElement('div');
+          card.className = 'card model-card';
+          card.innerHTML = `
+                        <div class="model-card-header d-flex justify-content-between">
+                            <span>${collection.collection_name}</span>
+                            <div>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editCollection('${collection.collection_id}')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteCollection('${collection.collection_id}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="model-card-body">
+                            <p><strong>描述:</strong> ${collection.collection_display?.display || '无'}</p>
+                        </div>
+                    `;
+          container.appendChild(card);
+        });
+      } catch (error) {
+        console.error('加载知识库列表失败:', error);
+      }
+    }
+
+    // 添加大模型
+    async function addLLM () {
+      const form = document.getElementById('addLLMForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch('/llm', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          $('#addLLMModal').modal('hide');
+          form.reset();
+          loadLLMs();
+        }
+      } catch (error) {
+        console.error('添加大模型失败:', error);
+      }
+    }
+
+    // 添加嵌入模型
+    async function addEmbedding () {
+      const form = document.getElementById('addEmbeddingForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        const response = await fetch('/embeddings', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          $('#addEmbeddingModal').modal('hide');
+          form.reset();
+          loadEmbeddings();
+        }
+      } catch (error) {
+        console.error('添加嵌入模型失败:', error);
+      }
+    }
+
+    // 添加知识库
+    async function addCollection () {
+      const form = document.getElementById('addCollectionForm');
+      const formData = new FormData(form);
+      const data = {
+        name: formData.get('name'),
+        collection_display: formData.get('description')
+      };
+
+      try {
+        const response = await fetch('/collection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          $('#addCollectionModal').modal('hide');
+          form.reset();
+          loadCollections();
+        }
+      } catch (error) {
+        console.error('添加知识库失败:', error);
+      }
+    }
+
+    // 编辑大模型
+    async function editLLM (id) {
+      try {
+        const response = await fetch(`/llm/list`);
+        const llms = await response.json();
+        const llm = llms.find(l => l.id === id);
+
+        if (llm) {
+          document.getElementById('editModalTitle').textContent = '编辑大模型';
+          document.getElementById('editModalBody').innerHTML = `
+                        <form id="editForm">
+                            <input type="hidden" name="id" value="${llm.id}">
+                            <div class="mb-3">
+                                <label class="form-label">模型来源</label>
+                                <select class="form-select" name="source" required>
+                                    <option value="ollama" ${llm.source === 'ollama' ? 'selected' : ''}>Ollama</option>
+                                    <option value="openai" ${llm.source === 'openai' ? 'selected' : ''}>OpenAI</option>
+                                    <option value="other" ${llm.source === 'other' ? 'selected' : ''}>其他</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">模型名称</label>
+                                <input type="text" class="form-control" name="name" value="${llm.name}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">API密钥</label>
+                                <input type="text" class="form-control" name="api_key" value="${llm.api_key || ''}">
+                            </div>
+                                                        <div class="mb-3">
+                                <label class="form-label">服务地址</label>
+                                <input type="text" class="form-control" name="base_url" value="${llm.base_url}" required>
+                            </div>
+                        </form>
+                    `;
+
+          $('#editModal').modal('show');
+        }
+      } catch (error) {
+        console.error('获取大模型详情失败:', error);
+      }
+    }
+
+    // 编辑嵌入模型
+    async function editEmbedding (id) {
+      try {
+        const response = await fetch(`/embeddings/list`);
+        const embeddings = await response.json();
+        const embedding = embeddings.find(e => e.id === id);
+
+        if (embedding) {
+          document.getElementById('editModalTitle').textContent = '编辑嵌入模型';
+          document.getElementById('editModalBody').innerHTML = `
+                        <form id="editForm">
+                            <input type="hidden" name="id" value="${embedding.id}">
+                            <div class="mb-3">
+                                <label class="form-label">模型来源</label>
+                                <select class="form-select" name="source" required>
+                                    <option value="ollama" ${embedding.source === 'ollama' ? 'selected' : ''}>Ollama</option>
+                                    <option value="openai" ${embedding.source === 'openai' ? 'selected' : ''}>OpenAI</option>
+                                    <option value="other" ${embedding.source === 'other' ? 'selected' : ''}>其他</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">模型名称</label>
+                                <input type="text" class="form-control" name="name" value="${embedding.name}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">服务地址</label>
+                                <input type="text" class="form-control" name="base_url" value="${embedding.base_url}" required>
+                            </div>
+                        </form>
+                    `;
+
+          $('#editModal').modal('show');
+        }
+      } catch (error) {
+        console.error('获取嵌入模型详情失败:', error);
+      }
+    }
+
+    // 编辑知识库
+    async function editCollection (id) {
+      try {
+        const response = await fetch(`/collection/list`);
+        const collections = await response.json();
+        const collection = collections.find(c => c.collection_id === id);
+
+        if (collection) {
+          document.getElementById('editModalTitle').textContent = '编辑知识库';
+          document.getElementById('editModalBody').innerHTML = `
+                        <form id="editForm">
+                            <input type="hidden" name="collection_id" value="${collection.collection_id}">
+                            <div class="mb-3">
+                                <label class="form-label">知识库名称</label>
+                                <input type="text" class="form-control" name="name" value="${collection.collection_name}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">描述</label>
+                                <textarea class="form-control" name="description" rows="3">${collection.collection_display?.display || ''}</textarea>
+                            </div>
+                        </form>
+                    `;
+
+          $('#editModal').modal('show');
+        }
+      } catch (error) {
+        console.error('获取知识库详情失败:', error);
+      }
+    }
+
+    // 保存编辑
+    async function saveEdit () {
+      const form = document.getElementById('editForm');
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      try {
+        let endpoint = '';
+        if (data.id) {
+          endpoint = '/llm';
+        } else if (data.collection_id) {
+          endpoint = '/collection';
+          data.description = data.description || '';
+          data = {
+            collection_id: data.collection_id,
+            collection_name: data.name,
+            collection_display: data.description
+          };
+        }
+
+        const response = await fetch(endpoint, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+          $('#editModal').modal('hide');
+
+          // 根据编辑的类型刷新对应的列表
+          if (data.id) {
+            loadLLMs();
+          } else if (data.collection_id) {
+            loadCollections();
+          } else {
+            loadEmbeddings();
+          }
+        }
+      } catch (error) {
+        console.error('保存编辑失败:', error);
+      }
+    }
+
+    // 删除大模型
+    async function deleteLLM (id) {
+      if (confirm('确定要删除这个大模型吗？')) {
+        try {
+          const response = await fetch(`/llm?model_id=${id}`, {
+            method: 'DELETE'
+          });
+
+          if (response.ok) {
+            loadLLMs();
+          }
+        } catch (error) {
+          console.error('删除大模型失败:', error);
+        }
+      }
+    }
+
+    // 删除嵌入模型
+    async function deleteEmbedding (id) {
+      if (confirm('确定要删除这个嵌入模型吗？')) {
+        try {
+          const response = await fetch(`/embeddings?embedding_id=${id}`, {
+            method: 'DELETE'
+          });
+
+          if (response.ok) {
+            loadEmbeddings();
+          }
+        } catch (error) {
+          console.error('删除嵌入模型失败:', error);
+        }
+      }
+    }
+
+    // 删除知识库
+    async function deleteCollection (id) {
+      if (confirm('确定要删除这个知识库吗？')) {
+        try {
+          const response = await fetch(`/collection?collection_id=${id}`, {
+            method: 'DELETE'
+          });
+
+          if (response.ok) {
+            loadCollections();
+          }
+        } catch (error) {
+          console.error('删除知识库失败:', error);
+        }
+      }
+    }
+  </script>
+</body>
+
+</html>

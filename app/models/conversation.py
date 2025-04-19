@@ -6,7 +6,7 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 
-from sqlalchemy import Column, String, JSON
+from sqlalchemy import Column, String
 
 from app.utils.database import BaseModel
 
