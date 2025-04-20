@@ -5,12 +5,12 @@
 Author: worship-dog
 Email: worship76@foxmail.com>
 """
-from uuid import uuid4
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 
-from app.services.chat import generate_answer, get_chats
+from app.services.chat import chat_manager
+
 from app.utils.database import get_sync_db, get_async_db, AsyncSession, SyncSessionLocal
 
 
@@ -20,20 +20,16 @@ router = APIRouter(
 
 
 @router.post("/chat")
-async def stream_chat(request: Request, session: AsyncSession = Depends(get_async_db)):
+async def astream_chat(request: Request, session: AsyncSession = Depends(get_async_db)):
     """
     SSE 流式问答
-    :param request: conversation_id、chat_id、question
+    :param request: conversation_id、chat_id、question、llm_id、prompt_template_id
     :param session: 异步数据库连接
     :return: answer_block
     """
     data = await request.json()
-    conversation_id = data.get("conversation_id")
-    chat_id = data.get("chat_id") or str(uuid4())
-    question = data.get("question", "")
-
     return StreamingResponse(
-        generate_answer(session, conversation_id, chat_id, question),
+        chat_manager.astream_generate_answer(session, **data),
         media_type="text/event-stream",  # 必须的SSE头
     )
 

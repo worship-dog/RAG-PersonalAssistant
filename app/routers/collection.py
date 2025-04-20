@@ -9,24 +9,32 @@ Email: worship76@foxmail.com>
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
+from app.services import collection_manager
 from app.utils.database import get_sync_db, SyncSessionLocal
-from app.services.collection import collection_manager
 
 
 router = APIRouter(
-    tags=["collection"],
+    tags=["conversation"],
     dependencies=[Depends(get_sync_db)]
 )
 
 
-class CollectionRequest(BaseModel):
-    collection_name: str = None
-    collection_display: str = None
+class CollectionCreateRequest(BaseModel):
+    name: str = None
+    display: str = None
+
+
+class CollectionDeleteRequest(BaseModel):
+    collection_id: str
+
+
+class CollectionUpdateRequest(CollectionCreateRequest, CollectionDeleteRequest):
+    pass
 
 
 @router.post("/collection")
 def create_collection(
-    request: CollectionRequest,
+    request: CollectionCreateRequest,
     session: SyncSessionLocal = Depends(get_sync_db)
 ):
     """
@@ -35,45 +43,37 @@ def create_collection(
     :param session: 数据库会话
     :return: 创建成功的知识库信息
     """
-    collection_manager.add_collection(
-        session,
-        collection_name=request.collection_name,
-        collection_display=request.collection_display
-    )
+    create_data = request.model_dump(exclude_unset=True)
+    collection_manager.add_collection(session, **create_data)
     return {"code": 200, "msg": "success"}
 
 @router.put("/collection")
 def edit_collection(
-    request: CollectionRequest,
-    session: SyncSessionLocal = Depends(get_sync_db),
-    collection_id: str = ""
+    request: CollectionUpdateRequest,
+    session: SyncSessionLocal = Depends(get_sync_db)
 ):
     """
     修改知识库信息
     :param request: 包含更新参数的请求体
     :param session: 数据库会话
-    :param collection_id: 要修改的知识库ID
     :return: 修改后的知识库信息
     """
-    update_data = {}
-    if request.name is not None:
-        update_data["collection_name"] = request.collection_name
-    if request.description is not None:
-        update_data["collection_display"] = request.collection_display
-        
-    collection_manager.update_collection(session, collection_id, **update_data)
+    update_data = request.model_dump(exclude_unset=True)
+    collection_manager.update_collection(session, **update_data)
     return {"code": 200, "msg": "success"}
 
-
 @router.delete("/collection")
-def del_collection(session: SyncSessionLocal = Depends(get_sync_db), collection_id: str=""):
+def del_collection(
+    request: CollectionDeleteRequest,
+    session: SyncSessionLocal = Depends(get_sync_db)
+):
     """
     删除知识库
+    :param request: 包含删除参数的请求体
     :param session: 数据库会话
-    :param collection_id: 要删除的知识库 ID
     :return: 删除结果
     """
-    collection_manager.delete_collection(session, collection_id)
+    collection_manager.delete_collection(session, request.collection_id)
     return {"code": 200, "msg": "success"}
 
 

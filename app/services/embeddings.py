@@ -32,7 +32,7 @@ class EmbeddingManager:
         } for embedding in embeddings]
         return rows
 
-    def add_embedding(self, session: SyncSessionLocal, source: str, name: str, base_url: str):
+    def add_embeddings(self, session: SyncSessionLocal, source: str, name: str, base_url: str):
         """
         新增嵌入模型到数据库
 
@@ -49,29 +49,29 @@ class EmbeddingManager:
         session.add(embedding)
         session.commit()
 
-    def update_embedding(self, session: SyncSessionLocal, embedding_id: int, **kwargs):
+    def update_embeddings(self, session: SyncSessionLocal, embeddings_id: int, **kwargs):
         """
         更新嵌入模型
 
-        :param embedding_id: 嵌入模型ID
+        :param embeddings_id: 嵌入模型ID
         :param kwargs: 可更新字段(source, name, base_url)
         :return:
         """
-        embedding = session.query(Embeddings).filter(Embeddings.id == embedding_id).first()
+        embedding = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
         if embedding:
             for key, value in kwargs.items():
                 if hasattr(embedding, key):
                     setattr(embedding, key, value)
             session.commit()
 
-    def delete_embedding(self, session: SyncSessionLocal, embedding_id: int):
+    def delete_embeddings(self, session: SyncSessionLocal, embeddings_id: int):
         """
         根据ID删除嵌入模型
 
-        :param embedding_id: 要删除的嵌入模型ID
+        :param embeddings_id: 要删除的嵌入模型ID
         :return: 如果删除成功返回True，未找到则返回False
         """
-        embedding = session.query(Embeddings).filter(Embeddings.id == embedding_id).first()
+        embedding = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
         if embedding:
             session.delete(embedding)
             session.commit()

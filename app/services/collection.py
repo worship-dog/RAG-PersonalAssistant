@@ -28,33 +28,33 @@ class CollectionManager:
         } for collection in collections]
         return rows
 
-    def add_collection(self, session: SyncSessionLocal, collection_name: str, collection_display: str):
+    def add_collection(self, session: SyncSessionLocal, name: str, display: str):
         """
         新增知识库记录到数据库
 
-        :param collection_name: 知识库名称
-        :param collection_display: 知识库描述
+        :param name: 知识库名称
+        :param display: 知识库描述
         :return:
         """
-        collection = LangchainPGCollection(name=collection_name, cmetadata={"display": collection_display})
+        collection = LangchainPGCollection(name=name, cmetadata={"display": display})
         session.add(collection)
         session.commit()
 
-    def update_collection(self, session: SyncSessionLocal, collection_id: str, collection_name: str = None, collection_display: str = None):
+    def update_collection(self, session: SyncSessionLocal, collection_id: str, name: str = None, display: str = None):
         """
         根据 ID 修改知识库记录
 
         :param collection_id: 要修改的知识库 ID
-        :param collection_name: 新的知识库名称，可选
-        :param collection_display: 新的知识库元数据，可选
+        :param name: 新的知识库名称，可选
+        :param display: 新的知识库元数据，可选
         :return:
         """
         collection = session.query(LangchainPGCollection).filter(LangchainPGCollection.uuid == collection_id).first()
         if collection:
             if name:
-                collection.name = collection_name
-            if cmetadata:
-                collection.cmetadata = {"display": collection_display}
+                collection.name = name
+            if display:
+                collection.cmetadata = {"display": display}
             session.commit()
 
     def delete_collection(self, session: SyncSessionLocal, collection_id: str):

@@ -11,13 +11,13 @@ from app.utils.database import SyncSessionLocal
 
 
 class LLMManager:
-    def get_models(self, session: SyncSessionLocal):
+    def get_llms(self, session: SyncSessionLocal):
         """
         查询所有LLM模型
 
         :return: 包含模型信息的字典列表
         """
-        models = session.query(
+        llm_list = session.query(
             LLM.id,
             LLM.source,
             LLM.name,
@@ -26,15 +26,15 @@ class LLMManager:
         ).all()
 
         rows = [{
-            "id": model.id,
-            "source": model.source,
-            "name": model.name,
-            "base_url": model.base_url,
-            "api_key": model.api_key
-        } for model in models]
+            "id": llm.id,
+            "source": llm.source,
+            "name": llm.name,
+            "base_url": llm.base_url,
+            "api_key": llm.api_key
+        } for llm in llm_list]
         return rows
 
-    def add_model(self, session: SyncSessionLocal, source: str, name: str, base_url: str, api_key: str):
+    def add_llm(self, session: SyncSessionLocal, source: str, name: str, base_url: str, api_key: str):
         """
         新增LLM模型记录到数据库
 
@@ -44,40 +44,40 @@ class LLMManager:
         :param api_key: API密钥
         :return:
         """
-        model = LLM(
+        llm = LLM(
             source=source,
             name=name,
             base_url=base_url,
             api_key=api_key
         )
-        session.add(model)
+        session.add(llm)
         session.commit()
 
-    def update_model(self, session: SyncSessionLocal, model_id: int, **kwargs):
+    def update_llm(self, session: SyncSessionLocal, llm_id: int, **kwargs):
         """
         更新LLM模型记录
 
-        :param model_id: 模型ID
+        :param llm_id: 模型ID
         :param kwargs: 可更新字段(source, name, base_url, api_key)
         :return:
         """
-        model = session.query(LLM).filter(LLM.id == model_id).first()
-        if model:
+        llm = session.query(LLM).filter(LLM.id == llm_id).first()
+        if llm:
             for key, value in kwargs.items():
-                if hasattr(model, key):
-                    setattr(model, key, value)
+                if hasattr(llm, key):
+                    setattr(llm, key, value)
             session.commit()
 
-    def delete_model(self, session: SyncSessionLocal, model_id: int):
+    def delete_llm(self, session: SyncSessionLocal, llm_id: int):
         """
         根据ID删除LLM模型记录
 
-        :param model_id: 要删除的模型ID
+        :param llm_id: 要删除的模型ID
         :return: 如果删除成功返回True，未找到则返回False
         """
-        model = session.query(LLM).filter(LLM.id == model_id).first()
-        if model:
-            session.delete(model)
+        llm = session.query(LLM).filter(LLM.id == llm_id).first()
+        if llm:
+            session.delete(llm)
             session.commit()
             return True
         return False

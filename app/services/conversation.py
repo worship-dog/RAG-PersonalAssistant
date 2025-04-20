@@ -6,17 +6,76 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 
-from sqlalchemy import desc
-
-from app.models import Conversation
+from app.models.conversation import Conversation
 from app.utils.database import SyncSessionLocal
 
 
-def get_conversations(session: SyncSessionLocal):
-    conversations = session.query(Conversation.id, Conversation.name).order_by(desc(Conversation.update_time)).all()
-    rows = [{
-        "conversation_id": conversation.id,
-        "conversation_name": conversation.name
-    } for conversation in conversations]
+class ConversationManager:
+    def create_conversation(self, session: SyncSessionLocal, name: str):  # 修改参数
+        conversation = Conversation(name=name)
+        session.add(conversation)
+        session.commit()
 
-    return rows
+    def get_conversations(self, session: SyncSessionLocal):
+        conversations = session.query(
+            Conversation.id,
+            Conversation.name  # 只返回 name 字段
+        ).all()
+
+        return [{
+            "id": conv.id,
+            "name": conv.name
+        } for conv in conversations]
+
+    def update_conversation(self, session: SyncSessionLocal, **kwargs):
+        """
+        更新对话
+        :param session: 数据库会话
+        :param kwargs: 可更新字段(name)
+        :return:
+        """
+        conversation = session.query(Conversation).filter(
+            Conversation.id == kwargs.get('conversation_id')
+        ).first()
+        if conversation:
+            for key, value in kwargs.items():
+                if hasattr(conversation, key):
+                    setattr(conversation, key, value)
+            session.commit()
+
+    def delete_conversation(self, session: SyncSessionLocal, conversation_id: str):
+        """
+        删除对话
+        :param session: 数据库会话
+        :param conversation_id: 对话ID
+        :return: 如果删除成功返回True，未找到则返回False
+        """
+        conversation = session.query(Conversation).filter(
+            Conversation.id == conversation_id
+        ).first()
+        if conversation:
+            session.delete(conversation)
+            session.commit()
+            return True
+        return False
+
+    def get_conversations(self, session: SyncSessionLocal):
+        """
+        获取对话列表
+        :param session: 数据库会话
+        :return: 对话列表
+        """
+        conversations = session.query(
+            Conversation.id,
+            Conversation.title,
+            Conversation.content
+        ).all()
+
+        return [{
+            "id": conv.id,
+            "title": conv.title,
+            "content": conv.content
+        } for conv in conversations]
+
+
+conversation_manager = ConversationManager()

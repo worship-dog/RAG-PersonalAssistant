@@ -5,3 +5,4 @@ from app.models.knowledge import Knowledge
 from app.models.langchain_pg_collection import LangchainPGCollection
 from app.models.langchain_pg_embedding import LangchainPGEmbedding
 from app.models.llm import LLM
+from app.models.prompt_template import PromptTemplate

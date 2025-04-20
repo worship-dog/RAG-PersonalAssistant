@@ -1,77 +1,36 @@
-# -*- coding: UTF-8 -*-
-"""
-聊天服务
+from langchain_ollama import OllamaLLM
 
-Author: worship-dog
-Email: worship76@foxmail.com>
-"""
-
-import json
-
-from app.models import Chat, Conversation
-from app.utils.llm import get_llm
-from app.utils.timer import timer_dict, Timer
+from app.models import LLM, PromptTemplate
+from app.utils.chain import chain_manager
+from app.utils.database import AsyncSessionLocal
 
 
-async def async_save_chat(session, conversation_id, question, think_time, full_response):
-    # 异步存储回答内容
-    if not conversation_id:
-        # 不存在conversation_id是，代表新对话，自动创建conversation
-        conversation = Conversation(name="新对话")  # TODO: 新对话命名
-        session.add(conversation)
-        conversation_id = conversation.id
+class ChatManager:
+    async def astream_generate_answer(
+            self,
+            session: AsyncSessionLocal,
+            conversation_id: str,
+            chat_id: str,
+            question: str,
+            llm_id: str=None,
+            prompt_template_id: str=None
+    ):
+        # 初始化大语言模型
+        llm: LLM = await session.get(LLM, llm_id)
+        # DB模型转为OllamaLLM模型
+        llm: OllamaLLM = llm.init()
 
-    # 创建聊天记录
-    chat_content = json.dumps({
-        "question": question,
-        "think_time": think_time,
-        "answer": "".join(full_response)
-    }, ensure_ascii=False)
-    session.add(Chat(
-        conversation_id=conversation_id,
-        chat_content=chat_content
-    ))
+        # 初始化提示词模板
+        if prompt_template_id:
+            prompt_template: PromptTemplate = await session.get(PromptTemplate, prompt_template_id)
+        else:
+            prompt_template = PromptTemplate()
+            prompt_template.name = "默认"
+            prompt_template.content = "你是一个智能助手，帮助用户解答以下问题"
 
-
-async def generate_answer(session, conversation_id, chat_id, question):
-    # 计时思考时长
-    think_time = 0
-    # 初始化此次chat的计时器
-    timer_dict.setdefault(chat_id, Timer())
-    timer = timer_dict[chat_id]
-    # 开始计时
-    timer.start_timer()
-
-    full_response = []  # 记录完整回答
-    # TODO: 1.知识库相似检索；2.历史记录上下文
-    try:
-        async for chunk in llm.astream(question):  # 使用astream获取流式响应
-            if timer.end_timer(chunk):  # 验证是否思考结束
-                think_time = timer.elapsed
-
-            full_response.append(chunk)  # 添加回答块
-            yield f"chat_id: {chat_id}\ndata: {chunk}\n\n"  # 以SSE格式返回回答
-    except Exception as e:
-        print(f"Unknown Error: {e}")
-    finally:
-        if full_response:
-            await async_save_chat(session, conversation_id, question, think_time, full_response)
-
-    # 销毁计时器
-    if chat_id in timer_dict:
-        del timer_dict[chat_id]
+        chain = chain_manager.get_chain(prompt_template, llm)
+        async for token in chain.astream(input=question):
+            yield f"data: {token}\n\n"  # 以SSE格式返回回答
 
 
-def get_chats(session, conversation_id):
-    def analysis_chat_content(chat_content):
-        # 解析聊天记录
-        chat_content = json.loads(chat_content)
-        return chat_content
-
-    # 查询聊天记录
-    chat_list = session.query(
-        Chat.id, Chat.chat_content
-    ).filter(Chat.conversation_id == conversation_id).order_by(Chat.create_time).all()
-
-    rows = [{"chat_id": chat.id, "chat_content": analysis_chat_content(chat.chat_content)} for chat in chat_list]
-    return rows
+chat_manager = ChatManager()

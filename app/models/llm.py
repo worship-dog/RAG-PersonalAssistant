@@ -6,6 +6,7 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 
+from langchain_ollama import OllamaLLM
 from sqlalchemy import Column, String
 
 from app.utils.database import BaseModel
@@ -18,3 +19,8 @@ class LLM(BaseModel):
     name = Column(String, comment="大模型名称")
     base_url = Column(String, comment="大模型服务地址")
     api_key = Column(String, comment="大模型API密钥")
+
+    # 初始化大语言模型
+    def init(self) -> OllamaLLM:
+        llm = OllamaLLM(model=self.name, base_url=self.base_url)
+        return llm
