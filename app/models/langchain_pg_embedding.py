@@ -15,7 +15,7 @@ from app.utils.database import Base
 class LangchainPGEmbedding(Base):
     __tablename__ = "langchain_pg_embedding"
 
-    id = Column(String)
+    id = Column(String, primary_key=True)
     collection_id = Column(UUID)
     embedding = Column(Vector)
     document = Column(String)

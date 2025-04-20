@@ -14,6 +14,6 @@ from app.utils.database import Base
 class LangchainPGCollection(Base):
     __tablename__ = "langchain_pg_collection"
 
-    uuid = Column(UUID)
+    uuid = Column(UUID, primary_key=True)
     name = Column(String)
     cmetadata = Column(JSON)

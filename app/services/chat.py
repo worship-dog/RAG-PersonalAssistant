@@ -9,7 +9,7 @@ Email: worship76@foxmail.com>
 import json
 
 from app.models import Chat, Conversation
-from app.utils.llm import llm
+from app.utils.llm import get_llm
 from app.utils.timer import timer_dict, Timer
 
 

@@ -8,7 +8,7 @@ Email: worship76@foxmail.com>
 
 import json
 
-from app.models import Collection, Knowledge, LangchainPGCollection, LangchainPGEmbedding
+from app.models import Knowledge, LangchainPGCollection, LangchainPGEmbedding
 from app.utils.database import SyncSessionLocal
 
 
