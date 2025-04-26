@@ -9,7 +9,7 @@ Email: worship76@foxmail.com>
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
-from app.services import embedding_manager
+from app.services import embeddings_manager
 from app.utils.database import get_sync_db, SyncSessionLocal
 
 
@@ -40,7 +40,7 @@ def create_embedding(
 ):
     """ 创建嵌入模型配置 """
     create_data = request.model_dump(exclude_unset=True)
-    embedding_manager.add_embedding(session, **create_data)
+    embeddings_manager.add_embeddings(session, **create_data)
     return {"code": 200, "msg": "success"}
 
 
@@ -56,7 +56,7 @@ def edit_embedding(
     :return: 修改结果
     """
     update_data = request.model_dump(exclude_unset=True)
-    embedding_manager.update_embedding(session, **update_data)
+    embeddings_manager.update_embeddings(session, **update_data)
     return {"code": 200, "msg": "success"}
 
 
@@ -71,7 +71,7 @@ def del_embedding(
     :param session: 数据库会话
     :return: 删除结果
     """
-    embedding_manager.delete_embedding(session, request.embeddings_id)
+    embeddings_manager.delete_embeddings(session, request.embeddings_id)
     return {"code": 200, "msg": "success"}
 
 
@@ -82,4 +82,5 @@ def get_embedding_list(session: SyncSessionLocal = Depends(get_sync_db)):
     :param session: 数据库会话
     :return: 嵌入模型列表
     """
-    return embedding_manager.get_embeddings(session)
+    embeddings_list = embeddings_manager.get_embeddings_list(session)
+    return {"code": 200, "message": "success", "data": embeddings_list}

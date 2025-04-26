@@ -26,7 +26,7 @@ class LLMManager:
         ).all()
 
         rows = [{
-            "id": llm.id,
+            "llm_id": llm.id,
             "source": llm.source,
             "name": llm.name,
             "base_url": llm.base_url,

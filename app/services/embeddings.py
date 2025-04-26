@@ -10,14 +10,14 @@ from app.models.embeddings import Embeddings
 from app.utils.database import SyncSessionLocal
 
 
-class EmbeddingManager:
-    def get_embeddings(self, session: SyncSessionLocal):
+class EmbeddingsManager:
+    def get_embeddings_list(self, session: SyncSessionLocal):
         """
         查询所有嵌入模型
 
         :return: 包含嵌入模型信息的字典列表
         """
-        embeddings = session.query(
+        embeddings_list = session.query(
             Embeddings.id,
             Embeddings.source,
             Embeddings.name,
@@ -25,11 +25,11 @@ class EmbeddingManager:
         ).all()
 
         rows = [{
-            "id": embedding.id,
-            "source": embedding.source,
-            "name": embedding.name,
-            "base_url": embedding.base_url
-        } for embedding in embeddings]
+            "embeddings_id": embeddings.id,
+            "source": embeddings.source,
+            "name": embeddings.name,
+            "base_url": embeddings.base_url
+        } for embeddings in embeddings_list]
         return rows
 
     def add_embeddings(self, session: SyncSessionLocal, source: str, name: str, base_url: str):
@@ -41,12 +41,12 @@ class EmbeddingManager:
         :param base_url: 服务地址
         :return:
         """
-        embedding = Embeddings(
+        embeddings = Embeddings(
             source=source,
             name=name,
             base_url=base_url
         )
-        session.add(embedding)
+        session.add(embeddings)
         session.commit()
 
     def update_embeddings(self, session: SyncSessionLocal, embeddings_id: int, **kwargs):
@@ -57,11 +57,11 @@ class EmbeddingManager:
         :param kwargs: 可更新字段(source, name, base_url)
         :return:
         """
-        embedding = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
-        if embedding:
+        embeddings = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
+        if embeddings:
             for key, value in kwargs.items():
-                if hasattr(embedding, key):
-                    setattr(embedding, key, value)
+                if hasattr(embeddings, key):
+                    setattr(embeddings, key, value)
             session.commit()
 
     def delete_embeddings(self, session: SyncSessionLocal, embeddings_id: int):
@@ -71,12 +71,12 @@ class EmbeddingManager:
         :param embeddings_id: 要删除的嵌入模型ID
         :return: 如果删除成功返回True，未找到则返回False
         """
-        embedding = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
-        if embedding:
-            session.delete(embedding)
+        embeddings = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
+        if embeddings:
+            session.delete(embeddings)
             session.commit()
             return True
         return False
 
 
-embedding_manager = EmbeddingManager()
+embeddings_manager = EmbeddingsManager()

@@ -41,7 +41,7 @@ def create_llm(
 ):
     """ 创建大语言模型配置 """
     create_data = request.model_dump(exclude_unset=True)
-    llm_manager.add_model(session, **create_data)
+    llm_manager.add_llm(session, **create_data)
     return {"code": 200, "msg": "success"}
 
 @router.put("/llm")
@@ -81,4 +81,5 @@ def get_llm_list(session: SyncSessionLocal = Depends(get_sync_db)):
     :param session: 数据库会话
     :return: 大语言模型列表
     """
-    return llm_manager.get_llms(session)
+    llm_list = llm_manager.get_llms(session)
+    return {"code": 200, "message": "success", "data": llm_list}

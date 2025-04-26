@@ -25,7 +25,8 @@ class ChainManager:
         self.llm = llm
 
         chain = (
-            RunnableLambda(debug_params)
+            RunnablePassthrough()
+            # | RunnableLambda(debug_params)
             | self.prompt_template
             | self.llm
             | StrOutputParser()

@@ -29,7 +29,7 @@ class ChatManager:
             prompt_template.content = "你是一个智能助手，帮助用户解答以下问题"
 
         chain = chain_manager.get_chain(prompt_template, llm)
-        async for token in chain.astream(input=question):
+        async for token in chain.astream(input={"input": question}):
             yield f"data: {token}\n\n"  # 以SSE格式返回回答
 
 
