@@ -6,7 +6,7 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 
-import json
+import uuid
 
 from app.models import Knowledge, LangchainPGCollection, LangchainPGEmbedding
 from app.utils.database import SyncSessionLocal
@@ -24,7 +24,7 @@ class CollectionManager:
         ).all()
 
         rows = [{
-            "collection_id": collection.uuid, "collection_name": collection.name, "collection_display": collection.cmetadata
+            "collection_id": collection.uuid, "name": collection.name, "display": collection.cmetadata.get("display")
         } for collection in collections]
         return rows
 
@@ -37,6 +37,7 @@ class CollectionManager:
         :return:
         """
         collection = LangchainPGCollection(name=name, cmetadata={"display": display})
+        collection.uuid = str(uuid.uuid4())
         session.add(collection)
         session.commit()
 

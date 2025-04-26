@@ -84,4 +84,5 @@ def get_collection_list(session: SyncSessionLocal = Depends(get_sync_db)):
     :param session: 数据库会话
     :return: 知识库列表
     """
-    return collection_manager.get_collections(session)
+    collections = collection_manager.get_collections(session)
+    return {"code": 200, "msg": "success", "data": collections}

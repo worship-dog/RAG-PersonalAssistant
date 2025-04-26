@@ -7,6 +7,7 @@ langchain_ollama == 0.3.0
 langchain_postgres == 0.0.13
 psycopg-binary == 3.2.4
 psycopg2-binary == 2.9.10
+python-multipart == 0.0.20
 redis == 5.2.1
 sqlalchemy == 2.0.40
 uvicorn == 0.34.0
