@@ -10,18 +10,6 @@ from pydantic import create_model
 from sys import modules
 
 
-llm_config = {
-    "source": (str, "ollama"),
-    "model": (str, "deepseek-r1:8b"),
-    "base_url": (str, "http://localhost:11434")
-}
-
-embeddings_config = {
-    "source": (str, "ollama"),
-    "model": (str, "bge-m3"),
-    "base_url": (str, "http://localhost:11434")
-}
-
 db_config = {
     "db_host": (str, "localhost"),
     "db_port": (str, "5432"),
@@ -31,6 +19,9 @@ db_config = {
     "pool_size": (int, 10),
     "max_overflow": (int, 20)
 }
+
+user_name = ""
+avatar = ""
 
 
 # 字典转对象
