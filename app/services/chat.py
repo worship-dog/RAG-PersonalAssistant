@@ -30,7 +30,7 @@ class ChatManager:
 
         chain = chain_manager.get_chain(prompt_template, llm)
         async for token in chain.astream(input={"input": question}):
-            yield f"data: {token}\n\n"  # 以SSE格式返回回答
+            yield token
 
 
 chat_manager = ChatManager()

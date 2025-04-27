@@ -59,7 +59,7 @@ def get_sync_db():
         db.commit()  # 提交事务
     except Exception as e:
         db.rollback()  # 回滚
-        raise HTTPException(status_code=500, detail="Database error")
+        raise HTTPException(status_code=500, detail=e.args[0])
     finally:
         db.close()
 
@@ -83,6 +83,6 @@ async def get_async_db():
         await db.commit()  # 提交事务
     except Exception as e:
         await db.rollback()  # 回滚
-        raise HTTPException(status_code=500, detail="Database error")
+        raise HTTPException(status_code=500, detail=e.args[0])
     finally:
         await db.close()
