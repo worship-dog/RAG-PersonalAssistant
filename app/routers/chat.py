@@ -5,12 +5,9 @@
 Author: worship-dog
 Email: worship76@foxmail.com>
 """
-
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, Depends, Request, WebSocket
 
 from app.services.chat import chat_manager
-
 from app.utils.database import get_sync_db, get_async_db, AsyncSession, SyncSessionLocal
 
 
@@ -19,19 +16,34 @@ router = APIRouter(
 )
 
 
-@router.post("/chat")
-async def astream_chat(request: Request, session: AsyncSession = Depends(get_async_db)):
+@router.websocket("/chat/stream")
+async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(get_async_db)):
     """
-    SSE 流式问答
-    :param request: conversation_id、chat_id、question、llm_id、prompt_template_id
+    WebSocket 流式问答
+    :param websocket: WebSocket连接
     :param session: 异步数据库连接
-    :return: answer_block
+    :return: WebSocket消息流
     """
-    data = await request.json()
-    return StreamingResponse(
-        chat_manager.astream_generate_answer(session, **data),
-        media_type="text/event-stream",  # 必须的SSE头
-    )
+    await websocket.accept()
+    
+    try:
+        # 接收初始参数
+        params = await websocket.receive_json()
+        data = {
+            "conversation_id": params.get("conversation_id"),
+            "chat_id": params.get("chat_id"),
+            "question": params.get("question"),
+            "llm_id": params.get("llm_id"),
+            "prompt_template_id": params.get("prompt_template_id")
+        }
+        
+        # 流式生成回答
+        async for chunk in chat_manager.astream_generate_answer(session, **data):
+            await websocket.send_text(chunk)
+    except Exception as e:
+        await websocket.send_text(f"error: {e}")
+    finally:
+        await websocket.close()
 
 
 @router.get("/chat")

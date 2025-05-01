@@ -11,3 +11,4 @@ python-multipart == 0.0.20
 redis == 5.2.1
 sqlalchemy == 2.0.40
 uvicorn == 0.34.0
+websockets == 15.0.1

@@ -16,7 +16,7 @@ class ChainManager:
         self.llm = None
         self.chain_dict = {}
 
-    def __create_chain(self, prompt_template: PromptTemplate, llm: OllamaLLM):
+    def _create_chain(self, prompt_template: PromptTemplate, llm: OllamaLLM):
         chain_key = f"{llm.model}_{prompt_template.name}"
         self.prompt_template = ChatPromptTemplate.from_messages([
             ("system", prompt_template.content),
@@ -39,7 +39,7 @@ class ChainManager:
         chain_key = f"{llm.model}_{prompt_template.name}"
         chain = self.chain_dict.get(chain_key)
         if chain is None:
-            chain = self.__create_chain(prompt_template, llm)
+            chain = self._create_chain(prompt_template, llm)
         return chain
 
 
