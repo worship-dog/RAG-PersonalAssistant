@@ -52,16 +52,14 @@ SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # 同步数据库连接依赖项
 def get_sync_db():
-    db = SyncSessionLocal()
-    try:
-        db.begin()  # 开始事务
-        yield db
-        db.commit()  # 提交事务
-    except Exception as e:
-        db.rollback()  # 回滚
-        raise HTTPException(status_code=500, detail=e.args[0])
-    finally:
-        db.close()
+    with SyncSessionLocal() as db:
+        try:
+            db.begin()  # 开始事务
+            yield db
+            db.commit()  # 提交事务
+        except Exception as e:
+            db.rollback()  # 回滚
+            raise HTTPException(status_code=500, detail=e.args[0])
 
 
 # 创建异步引擎
@@ -76,13 +74,13 @@ AsyncSessionLocal = async_sessionmaker(bind=async_engine, class_=AsyncSession, e
 
 # 异步数据库连接依赖项
 async def get_async_db():
-    db = AsyncSessionLocal()
-    try:
-        await db.begin()  # 开始事务
-        yield db
-        await db.commit()  # 提交事务
-    except Exception as e:
-        await db.rollback()  # 回滚
-        raise HTTPException(status_code=500, detail=e.args[0])
-    finally:
-        await db.close()
+    async with AsyncSessionLocal() as db:
+        try:
+            await db.begin()  # 开始事务
+            yield db
+            await db.commit()  # 提交事务
+        except Exception as e:
+            await db.rollback()  # 回滚
+            raise HTTPException(status_code=500, detail=e.args[0])
+        finally:
+            await db.close()

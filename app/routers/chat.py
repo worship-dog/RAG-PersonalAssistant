@@ -27,23 +27,30 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
     await websocket.accept()
     
     try:
-        # 接收初始参数
-        params = await websocket.receive_json()
-        data = {
-            "conversation_id": params.get("conversation_id"),
-            "chat_id": params.get("chat_id"),
-            "question": params.get("question"),
-            "llm_id": params.get("llm_id"),
-            "prompt_template_id": params.get("prompt_template_id")
-        }
-        
-        # 流式生成回答
-        async for chunk in chat_manager.astream_generate_answer(session, **data):
-            await websocket.send_text(chunk)
-    except Exception as e:
-        await websocket.send_text(f"error: {e}")
+        while True:
+            try:
+                # 接收初始参数
+                params = await websocket.receive_json()
+                data = {
+                    "conversation_id": params.get("conversation_id"),
+                    "chat_id": params.get("chat_id"),
+                    "question": params.get("question"),
+                    "llm_id": params.get("llm_id"),
+                    "prompt_template_id": params.get("prompt_template_id")
+                }
+                # 流式生成回答
+                async for chunk in chat_manager.astream_generate_answer(session, **data):
+                    await websocket.send_text(chunk)
+            except Exception as e:
+                # 仅记录错误，不发送给客户端
+                print(f"WebSocket error: {e}")
+                break
     finally:
-        await websocket.close()
+        # 确保连接关闭
+        try:
+            await websocket.close()
+        except Exception:
+            pass
 
 
 @router.get("/chat")
