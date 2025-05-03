@@ -38,8 +38,8 @@ def create_conversation(
 ):
     """ 创建对话 """
     create_data = request.model_dump(exclude_unset=True)
-    conversation_manager.create_conversation(session, **create_data)
-    return {"code": 200, "msg": "success"}
+    conversation_id = conversation_manager.create_conversation(session, **create_data)
+    return {"code": 200, "msg": "success", "data": {"conversation_id": conversation_id}}
 
 @router.put("/conversation")
 def edit_conversation(
@@ -78,5 +78,5 @@ def get_conversation():
 
 @router.get("/conversation/list")
 def get_conversation_list(session: SyncSessionLocal = Depends(get_sync_db)):
-    data = get_conversations(session)
-    return {"code": 200, "msg": "查询成功!", "data": data}
+    data = conversation_manager.get_conversations(session)
+    return {"code": 200, "msg": "success", "data": data}

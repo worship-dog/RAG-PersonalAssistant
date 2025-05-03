@@ -15,6 +15,7 @@ class ConversationManager:
         conversation = Conversation(name=name)
         session.add(conversation)
         session.commit()
+        return conversation.id
 
     def get_conversations(self, session: SyncSessionLocal):
         conversations = session.query(
@@ -58,24 +59,6 @@ class ConversationManager:
             session.commit()
             return True
         return False
-
-    def get_conversations(self, session: SyncSessionLocal):
-        """
-        获取对话列表
-        :param session: 数据库会话
-        :return: 对话列表
-        """
-        conversations = session.query(
-            Conversation.id,
-            Conversation.title,
-            Conversation.content
-        ).all()
-
-        return [{
-            "id": conv.id,
-            "title": conv.title,
-            "content": conv.content
-        } for conv in conversations]
 
 
 conversation_manager = ConversationManager()

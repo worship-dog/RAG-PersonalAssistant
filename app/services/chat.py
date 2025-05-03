@@ -1,14 +1,14 @@
 from langchain_ollama import OllamaLLM
 
-from app.models import LLM, PromptTemplate
+from app.models import Chat, LLM, PromptTemplate
 from app.utils.chain import chain_manager
-from app.utils.database import AsyncSessionLocal
+from app.utils.database import AsyncSession, SyncSessionLocal
 
 
 class ChatManager:
     async def astream_generate_answer(
             self,
-            session: AsyncSessionLocal,
+            session: AsyncSession,
             conversation_id: str,
             chat_id: str,
             question: str,
@@ -31,6 +31,32 @@ class ChatManager:
         chain = chain_manager.get_chain(prompt_template, llm)
         async for token in chain.astream(input={"input": question}):
             yield token
+
+    async def save_chat(self, session: AsyncSession, answer, think_time, **data):
+        try:
+            if data.get("chat_id"):
+                chat = await session.get(Chat, data["chat_id"])
+            else:
+                chat = Chat(**data)
+                chat.chat_content = {
+                    "human": data["question"],
+                    "ai": [],
+                    "system": data["prompt_template_id"]
+                }
+                session.add(chat)
+
+            ai_content = {"llm": data["llm_id"], "answer": answer, "think_time": think_time}
+            chat.chat_content["ai"].append(ai_content)
+            await session.commit()
+        except Exception as e:
+            # 记录错误但不抛出，避免中断WebSocket连接
+            print(f"保存聊天记录时出错: {str(e)}")
+    
+    def get_chats(self, session: SyncSessionLocal, conversation_id):
+        chat_list = session.query(Chat.chat_content).filter_by(
+            conversation_id=conversation_id
+        ).order_by(Chat.create_time).all()
+        return [chat.chat_content for chat in chat_list]
 
 
 chat_manager = ChatManager()
