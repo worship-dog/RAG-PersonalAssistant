@@ -54,17 +54,18 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
                     # 记录耗时
                     if timer_dict[session_id].end_timer(chunk):
                         think_time = timer_dict[session_id].elapsed
+                await websocket.send_text("@@@end@@@")  #发送结束标识
             except Exception as e:
                 print(f"LLM错误: {str(e)}")
             try:
                 # 保存回答
                 await chat_manager.save_chat(session, answer, think_time, **data)
             except Exception as e:
-                # 记录详细错误信息，不发送给客户端
-                print(f"WebSocket错误: {str(e)}")
+                print(f"DB错误: {str(e)}")
                 break
+    except Exception as e:
+        print(f"Websocket错误: {str(e)}")
     finally:
-        # 确保连接关闭
         try:
             await websocket.close()
         except Exception as e:
@@ -72,7 +73,7 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
             # 不再抛出异常
 
 
-@router.get("/chat")
+@router.get("/chat/list")
 def get_chat_list(request: Request, session: SyncSessionLocal = Depends(get_sync_db)):
     """
     查询聊天记录
