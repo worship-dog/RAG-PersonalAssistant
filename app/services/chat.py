@@ -1,4 +1,5 @@
 from langchain_ollama import OllamaLLM
+from sqlalchemy.orm.attributes import flag_modified
 
 from app.models import Chat, LLM, PromptTemplate
 from app.utils.chain import chain_manager
@@ -16,13 +17,13 @@ class ChatManager:
             prompt_template_id: str=None
     ):
         # 初始化大语言模型
-        llm: LLM = await session.get(LLM, llm_id)
+        llm: LLM|None = await session.get(LLM, llm_id)
         # DB模型转为OllamaLLM模型
         llm: OllamaLLM = llm.init()
 
         # 初始化提示词模板
         if prompt_template_id:
-            prompt_template: PromptTemplate = await session.get(PromptTemplate, prompt_template_id)
+            prompt_template: PromptTemplate|None = await session.get(PromptTemplate, prompt_template_id)
         else:
             prompt_template = PromptTemplate()
             prompt_template.name = "默认"
@@ -33,24 +34,23 @@ class ChatManager:
             yield token
 
     async def save_chat(self, session: AsyncSession, answer, think_time, **data):
-        try:
-            if data.get("chat_id"):
-                chat = await session.get(Chat, data["chat_id"])
-            else:
-                chat = Chat(**data)
-                chat.chat_content = {
-                    "human": data["question"],
-                    "ai": [],
-                    "system": data["prompt_template_id"]
-                }
-                session.add(chat)
-
+        if data.get("chat_id"):
+            chat = await session.get(Chat, data["chat_id"])
+        else:
+            chat = Chat(**data)
+            chat.chat_content = {
+                "human": data["question"],
+                "ai": [],
+                "system": data["prompt_template_id"]
+            }
+            session.add(chat)
+        # answer为空时，表示只保存问题
+        if answer != "":
             ai_content = {"llm": data["llm_id"], "answer": answer, "think_time": think_time}
             chat.chat_content["ai"].append(ai_content)
-            await session.commit()
-        except Exception as e:
-            # 记录错误但不抛出，避免中断WebSocket连接
-            print(f"保存聊天记录时出错: {str(e)}")
+            flag_modified(chat, "chat_content")  # 标记chat_content被修改
+        await session.commit()
+        return chat.id
     
     def get_chats(self, session: Session, conversation_id):
         chat_list = session.query(Chat.chat_content).filter_by(

@@ -46,23 +46,32 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
                 "llm_id": params.get("llm_id"),
                 "prompt_template_id": params.get("prompt_template_id")
             }
-            # 流式生成回答
+
+            # 保存问题
             try:
-                async for chunk in chat_manager.astream_generate_answer(session, **data):
-                    answer += chunk
-                    await websocket.send_text(chunk)
-                    # 记录耗时
-                    if timer_dict[session_id].end_timer(chunk):
-                        think_time = timer_dict[session_id].elapsed
-                await websocket.send_text("@@@end@@@")  #发送结束标识
+                # 提问时，先保存问题内容，解决用户在回答过程中切换到其他对话后 又切换回来 看不到问题的bug
+                if not data.get("chat_id"):
+                    data["chat_id"] = await chat_manager.save_chat(session, "", think_time, **data)
             except Exception as e:
-                print(f"LLM错误: {str(e)}")
+                print(f"DB错误: {str(e)}")
+                break
+
+            # 流式生成回答
+            async for chunk in chat_manager.astream_generate_answer(session, **data):
+                answer += chunk
+                await websocket.send_json({"chunk": chunk, "conversation_id": params.get("conversation_id")})
+                # 记录耗时
+                if timer_dict[session_id].end_timer(chunk):
+                    think_time = timer_dict[session_id].elapsed
+            await websocket.send_text("@@@end@@@")  #发送结束标识
+
+            # 保存回答
             try:
-                # 保存回答
                 await chat_manager.save_chat(session, answer, think_time, **data)
             except Exception as e:
                 print(f"DB错误: {str(e)}")
                 break
+
     except Exception as e:
         print(f"Websocket错误: {str(e)}")
     finally:
