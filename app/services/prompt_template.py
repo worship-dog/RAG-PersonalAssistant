@@ -7,11 +7,11 @@ Email: worship76@foxmail.com>
 """
 
 from app.models.prompt_template import PromptTemplate
-from app.utils.database import SyncSessionLocal
+from app.utils.database import Session
 
 
 class PromptTemplateManager:
-    def get_templates(self, session: SyncSessionLocal):
+    def get_templates(self, session: Session):
         """
         获取所有提示词模板
         :param session: 数据库会话
@@ -29,7 +29,7 @@ class PromptTemplateManager:
             "content": template.content
         } for template in templates]
 
-    def add_template(self, session: SyncSessionLocal, name: str, content: str):
+    def add_template(self, session: Session, name: str, content: str):
         """
         添加提示词模板
         :param session: 数据库会话
@@ -41,7 +41,7 @@ class PromptTemplateManager:
         session.add(template)
         session.commit()
 
-    def update_template(self, session: SyncSessionLocal, template_id: int, **kwargs):
+    def update_template(self, session: Session, template_id: int, **kwargs):
         """
         更新提示词模板
         :param session: 数据库会话
@@ -56,7 +56,7 @@ class PromptTemplateManager:
                     setattr(template, key, value)
             session.commit()
 
-    def delete_template(self, session: SyncSessionLocal, template_id: int):
+    def delete_template(self, session: Session, template_id: int):
         """
         删除提示词模板
         :param session: 数据库会话

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.services import collection_manager
-from app.utils.database import get_sync_db, SyncSessionLocal
+from app.utils.database import get_sync_db, Session
 
 
 router = APIRouter(
@@ -35,7 +35,7 @@ class CollectionUpdateRequest(CollectionCreateRequest, CollectionDeleteRequest):
 @router.post("/collection")
 def create_collection(
     request: CollectionCreateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     创建知识库
@@ -50,7 +50,7 @@ def create_collection(
 @router.put("/collection")
 def edit_collection(
     request: CollectionUpdateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     修改知识库信息
@@ -65,7 +65,7 @@ def edit_collection(
 @router.delete("/collection")
 def del_collection(
     request: CollectionDeleteRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     删除知识库
@@ -78,7 +78,7 @@ def del_collection(
 
 
 @router.get("/collection/list")
-def get_collection_list(session: SyncSessionLocal = Depends(get_sync_db)):
+def get_collection_list(session: Session = Depends(get_sync_db)):
     """
     获取知识库列表
     :param session: 数据库会话

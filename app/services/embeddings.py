@@ -7,11 +7,11 @@ Email: worship76@foxmail.com>
 """
 
 from app.models.embeddings import Embeddings
-from app.utils.database import SyncSessionLocal
+from app.utils.database import Session
 
 
 class EmbeddingsManager:
-    def get_embeddings_list(self, session: SyncSessionLocal):
+    def get_embeddings_list(self, session: Session):
         """
         查询所有嵌入模型
 
@@ -32,7 +32,7 @@ class EmbeddingsManager:
         } for embeddings in embeddings_list]
         return rows
 
-    def add_embeddings(self, session: SyncSessionLocal, source: str, name: str, base_url: str):
+    def add_embeddings(self, session: Session, source: str, name: str, base_url: str):
         """
         新增嵌入模型到数据库
 
@@ -49,7 +49,7 @@ class EmbeddingsManager:
         session.add(embeddings)
         session.commit()
 
-    def update_embeddings(self, session: SyncSessionLocal, embeddings_id: int, **kwargs):
+    def update_embeddings(self, session: Session, embeddings_id: int, **kwargs):
         """
         更新嵌入模型
 
@@ -64,7 +64,7 @@ class EmbeddingsManager:
                     setattr(embeddings, key, value)
             session.commit()
 
-    def delete_embeddings(self, session: SyncSessionLocal, embeddings_id: int):
+    def delete_embeddings(self, session: Session, embeddings_id: int):
         """
         根据ID删除嵌入模型
 

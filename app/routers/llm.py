@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.services import llm_manager
-from app.utils.database import get_sync_db, SyncSessionLocal
+from app.utils.database import get_sync_db, Session
 
 
 router = APIRouter(
@@ -37,7 +37,7 @@ class LLMUpdateRequest(LLMCreateRequest, LLMDeleteRequest):
 @router.post("/llm")
 def create_llm(
     request: LLMCreateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """ 创建大语言模型配置 """
     create_data = request.model_dump(exclude_unset=True)
@@ -47,7 +47,7 @@ def create_llm(
 @router.put("/llm")
 def edit_llm(
     request: LLMUpdateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     修改大语言模型配置
@@ -62,7 +62,7 @@ def edit_llm(
 @router.delete("/llm")
 def del_llm(
     request: LLMDeleteRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     删除大语言模型配置
@@ -75,7 +75,7 @@ def del_llm(
 
 
 @router.get("/llm/list")
-def get_llm_list(session: SyncSessionLocal = Depends(get_sync_db)):
+def get_llm_list(session: Session = Depends(get_sync_db)):
     """
     获取大语言模型列表
     :param session: 数据库会话

@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.services import prompt_template_manager
-from app.utils.database import get_sync_db, SyncSessionLocal
+from app.utils.database import get_sync_db, Session
 
 
 router = APIRouter(
@@ -35,7 +35,7 @@ class PromptTemplateUpdateRequest(PromptTemplateCreateRequest, PromptTemplateDel
 @router.post("/prompt_template")
 def create_template(
     request: PromptTemplateCreateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     创建提示词模板
@@ -51,7 +51,7 @@ def create_template(
 @router.put("/prompt_template")
 def update_template(
     request: PromptTemplateUpdateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     更新提示词模板
@@ -67,7 +67,7 @@ def update_template(
 @router.delete("/prompt_template")
 def delete_template(
     request: PromptTemplateDeleteRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     删除提示词模板
@@ -80,7 +80,7 @@ def delete_template(
 
 
 @router.get("/prompt_template/list")
-def get_template_list(session: SyncSessionLocal = Depends(get_sync_db)):
+def get_template_list(session: Session = Depends(get_sync_db)):
     """
     获取提示词模板列表
     :param session: 数据库会话

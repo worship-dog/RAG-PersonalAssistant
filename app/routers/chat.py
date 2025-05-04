@@ -8,7 +8,7 @@ Email: worship76@foxmail.com>
 from fastapi import APIRouter, Depends, Request, WebSocket
 
 from app.services.chat import chat_manager
-from app.utils.database import get_sync_db, get_async_db, AsyncSession, SyncSessionLocal
+from app.utils.database import get_sync_db, get_async_db, AsyncSession, Session
 from app.utils.timer import timer_dict, Timer
 
 
@@ -74,7 +74,7 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
 
 
 @router.get("/chat/list")
-def get_chat_list(request: Request, session: SyncSessionLocal = Depends(get_sync_db)):
+def get_chat_list(request: Request, session: Session = Depends(get_sync_db)):
     """
     查询聊天记录
     :param request: conversation_id

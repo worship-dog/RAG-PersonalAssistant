@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.services import embeddings_manager
-from app.utils.database import get_sync_db, SyncSessionLocal
+from app.utils.database import get_sync_db, Session
 
 
 router = APIRouter(
@@ -36,7 +36,7 @@ class EmbeddingUpdateRequest(EmbeddingCreateRequest, EmbeddingDeleteRequest):
 @router.post("/embeddings")
 def create_embedding(
     request: EmbeddingCreateRequest, 
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """ 创建嵌入模型配置 """
     create_data = request.model_dump(exclude_unset=True)
@@ -47,7 +47,7 @@ def create_embedding(
 @router.put("/embeddings")
 def edit_embedding(
     request: EmbeddingUpdateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     修改嵌入模型配置
@@ -63,7 +63,7 @@ def edit_embedding(
 @router.delete("/embeddings")
 def del_embedding(
     request: EmbeddingDeleteRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     删除嵌入模型配置
@@ -76,7 +76,7 @@ def del_embedding(
 
 
 @router.get("/embeddings/list")
-def get_embedding_list(session: SyncSessionLocal = Depends(get_sync_db)):
+def get_embedding_list(session: Session = Depends(get_sync_db)):
     """
     获取嵌入模型列表
     :param session: 数据库会话

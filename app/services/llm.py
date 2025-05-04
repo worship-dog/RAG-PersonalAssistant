@@ -7,11 +7,11 @@ Email: worship76@foxmail.com>
 """
 
 from app.models import LLM
-from app.utils.database import SyncSessionLocal
+from app.utils.database import Session
 
 
 class LLMManager:
-    def get_llms(self, session: SyncSessionLocal):
+    def get_llms(self, session: Session):
         """
         查询所有LLM模型
 
@@ -34,7 +34,7 @@ class LLMManager:
         } for llm in llm_list]
         return rows
 
-    def add_llm(self, session: SyncSessionLocal, source: str, name: str, base_url: str, api_key: str):
+    def add_llm(self, session: Session, source: str, name: str, base_url: str, api_key: str):
         """
         新增LLM模型记录到数据库
 
@@ -53,7 +53,7 @@ class LLMManager:
         session.add(llm)
         session.commit()
 
-    def update_llm(self, session: SyncSessionLocal, llm_id: int, **kwargs):
+    def update_llm(self, session: Session, llm_id: int, **kwargs):
         """
         更新LLM模型记录
 
@@ -68,7 +68,7 @@ class LLMManager:
                     setattr(llm, key, value)
             session.commit()
 
-    def delete_llm(self, session: SyncSessionLocal, llm_id: int):
+    def delete_llm(self, session: Session, llm_id: int):
         """
         根据ID删除LLM模型记录
 

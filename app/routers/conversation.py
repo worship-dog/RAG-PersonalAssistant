@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from app.services import conversation_manager
-from app.utils.database import get_sync_db, SyncSessionLocal
+from app.utils.database import get_sync_db, Session
 
 
 router = APIRouter(
@@ -34,7 +34,7 @@ class ConversationUpdateRequest(ConversationCreateRequest, ConversationDeleteReq
 @router.post("/conversation")
 def create_conversation(
     request: ConversationCreateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """ 创建对话 """
     create_data = request.model_dump(exclude_unset=True)
@@ -44,7 +44,7 @@ def create_conversation(
 @router.put("/conversation")
 def edit_conversation(
     request: ConversationUpdateRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     更新对话
@@ -59,7 +59,7 @@ def edit_conversation(
 @router.delete("/conversation")
 def del_conversation(
     request: ConversationDeleteRequest,
-    session: SyncSessionLocal = Depends(get_sync_db)
+    session: Session = Depends(get_sync_db)
 ):
     """
     删除对话
@@ -71,12 +71,7 @@ def del_conversation(
     return {"code": 200, "msg": "success"}
 
 
-@router.get("/conversation")
-def get_conversation():
-    pass
-
-
 @router.get("/conversation/list")
-def get_conversation_list(session: SyncSessionLocal = Depends(get_sync_db)):
+def get_conversation_list(session: Session = Depends(get_sync_db)):
     data = conversation_manager.get_conversations(session)
     return {"code": 200, "msg": "success", "data": data}

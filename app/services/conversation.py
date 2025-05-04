@@ -6,29 +6,32 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 
+from sqlalchemy import desc
+
+from app.models.chat import Chat
 from app.models.conversation import Conversation
-from app.utils.database import SyncSessionLocal
+from app.utils.database import Session
 
 
 class ConversationManager:
-    def create_conversation(self, session: SyncSessionLocal, name: str):  # 修改参数
+    def create_conversation(self, session: Session, name: str):  # 修改参数
         conversation = Conversation(name=name)
         session.add(conversation)
         session.commit()
         return conversation.id
 
-    def get_conversations(self, session: SyncSessionLocal):
+    def get_conversations(self, session: Session):
         conversations = session.query(
             Conversation.id,
             Conversation.name  # 只返回 name 字段
-        ).all()
+        ).order_by(desc(Conversation.update_time)).all()
 
         return [{
             "id": conv.id,
             "name": conv.name
         } for conv in conversations]
 
-    def update_conversation(self, session: SyncSessionLocal, **kwargs):
+    def update_conversation(self, session: Session, **kwargs):
         """
         更新对话
         :param session: 数据库会话
@@ -44,7 +47,7 @@ class ConversationManager:
                     setattr(conversation, key, value)
             session.commit()
 
-    def delete_conversation(self, session: SyncSessionLocal, conversation_id: str):
+    def delete_conversation(self, session: Session, conversation_id: str):
         """
         删除对话
         :param session: 数据库会话
@@ -55,6 +58,9 @@ class ConversationManager:
             Conversation.id == conversation_id
         ).first()
         if conversation:
+            # 删除对话下所有聊天记录
+            for chat in session.query(Chat).filter(Chat.conversation_id == conversation_id).all():
+                session.delete(chat)
             session.delete(conversation)
             session.commit()
             return True

@@ -13,6 +13,7 @@ from sqlalchemy import create_engine, Column, String, TIMESTAMP
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.session import Session
 
 from app.config import get_config
 
@@ -47,7 +48,7 @@ engine = create_engine(
 )
 
 # 同步会话工厂
-SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=Session)
 
 
 # 同步数据库连接依赖项

@@ -9,11 +9,11 @@ Email: worship76@foxmail.com>
 import uuid
 
 from app.models import Knowledge, LangchainPGCollection, LangchainPGEmbedding
-from app.utils.database import SyncSessionLocal
+from app.utils.database import Session
 
 
 class CollectionManager:
-    def get_collections(self, session: SyncSessionLocal):
+    def get_collections(self, session: Session):
         """
         查询知识库
 
@@ -28,7 +28,7 @@ class CollectionManager:
         } for collection in collections]
         return rows
 
-    def add_collection(self, session: SyncSessionLocal, name: str, display: str):
+    def add_collection(self, session: Session, name: str, display: str):
         """
         新增知识库记录到数据库
 
@@ -41,7 +41,7 @@ class CollectionManager:
         session.add(collection)
         session.commit()
 
-    def update_collection(self, session: SyncSessionLocal, collection_id: str, name: str = None, display: str = None):
+    def update_collection(self, session: Session, collection_id: str, name: str = None, display: str = None):
         """
         根据 ID 修改知识库记录
 
@@ -58,7 +58,7 @@ class CollectionManager:
                 collection.cmetadata = {"display": display}
             session.commit()
 
-    def delete_collection(self, session: SyncSessionLocal, collection_id: str):
+    def delete_collection(self, session: Session, collection_id: str):
         """
         根据 ID 删除知识库记录
 

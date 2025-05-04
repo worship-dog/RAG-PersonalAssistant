@@ -2,7 +2,7 @@ from langchain_ollama import OllamaLLM
 
 from app.models import Chat, LLM, PromptTemplate
 from app.utils.chain import chain_manager
-from app.utils.database import AsyncSession, SyncSessionLocal
+from app.utils.database import AsyncSession, Session
 
 
 class ChatManager:
@@ -52,7 +52,7 @@ class ChatManager:
             # 记录错误但不抛出，避免中断WebSocket连接
             print(f"保存聊天记录时出错: {str(e)}")
     
-    def get_chats(self, session: SyncSessionLocal, conversation_id):
+    def get_chats(self, session: Session, conversation_id):
         chat_list = session.query(Chat.chat_content).filter_by(
             conversation_id=conversation_id
         ).order_by(Chat.create_time).all()
