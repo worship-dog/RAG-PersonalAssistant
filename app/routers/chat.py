@@ -26,7 +26,7 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
     :return: WebSocket消息流
     """
     await websocket.accept()
-    
+    session_id = None
     try:
         while True:
             # 初始化回答
@@ -34,7 +34,6 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
             # 记录思考耗时
             session_id = websocket.client.host
             timer_dict.setdefault(session_id, Timer())
-            timer_dict[session_id].start_timer()
             think_time = 0
 
             # 接收初始参数
@@ -57,7 +56,7 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
                 break
 
             # 流式生成回答
-            async for chunk in chat_manager.astream_generate_answer(session, **data):
+            async for chunk in chat_manager.astream_generate_answer(timer_dict[session_id], session, **data):
                 answer += chunk
                 await websocket.send_json({"chunk": chunk, "conversation_id": params.get("conversation_id")})
                 # 记录耗时
@@ -80,6 +79,8 @@ async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(g
         except Exception as e:
             print(f"关闭WebSocket连接时出错: {str(e)}")
             # 不再抛出异常
+        if timer_dict.get(session_id):
+            del timer_dict[session_id]
 
 
 @router.get("/chat/list")

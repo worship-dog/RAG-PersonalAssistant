@@ -9,6 +9,7 @@ from app.utils.database import AsyncSession, Session
 class ChatManager:
     async def astream_generate_answer(
             self,
+            timer,
             session: AsyncSession,
             conversation_id: str,
             chat_id: str,
@@ -29,6 +30,7 @@ class ChatManager:
             prompt_template.name = "默认"
             prompt_template.content = "你是一个智能助手，帮助用户解答以下问题"
 
+        timer.start_timer()  # 开始思考计时
         chain = chain_manager.get_chain(prompt_template, llm)
         async for token in chain.astream(input={"input": question}):
             yield token
