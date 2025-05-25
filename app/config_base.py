@@ -37,3 +37,5 @@ def get_config(config_name: str):
         config_dict = getattr(current_module, config_name)  # 根据变量名获取config字典
         config_obj = dict2obj(config_dict)  # 根据config字典动态创建config对象
         return config_obj
+    else:
+        raise AttributeError(f"{config_name} is not exist")

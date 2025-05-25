@@ -5,6 +5,7 @@
 Author: worship-dog
 Email: worship76@foxmail.com>
 """
+from contextlib import contextmanager, asynccontextmanager
 from datetime import datetime
 import uuid
 
@@ -51,16 +52,23 @@ engine = create_engine(
 SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=Session)
 
 
+@contextmanager
+def db_scope():
+    db = SyncSessionLocal()
+    try:
+        db.begin()  # 启动事务
+        yield db
+        db.commit()  # 提交事务
+    except Exception as e:
+        db.rollback()  # 回滚
+        raise HTTPException(status_code=500, detail=e.args[0])
+    finally:
+        db.close()
+
 # 同步数据库连接依赖项
 def get_sync_db():
-    with SyncSessionLocal() as db:
-        try:
-            db.begin()  # 开始事务
-            yield db
-            db.commit()  # 提交事务
-        except Exception as e:
-            db.rollback()  # 回滚
-            raise HTTPException(status_code=500, detail=e.args[0])
+    with db_scope() as db:
+        yield db
 
 
 # 创建异步引擎
@@ -74,14 +82,20 @@ AsyncSessionLocal = async_sessionmaker(bind=async_engine, class_=AsyncSession, e
 
 
 # 异步数据库连接依赖项
+@asynccontextmanager
+async def async_db_scope():
+    db = AsyncSessionLocal()
+    try:
+        await db.begin()  # 开始事务
+        yield db
+        await db.commit()  # 提交事务
+    except Exception as e:
+        await db.rollback()  # 回滚
+        raise HTTPException(status_code=500, detail=e.args[0])
+    finally:
+        await db.close()
+
+
 async def get_async_db():
-    async with AsyncSessionLocal() as db:
-        try:
-            await db.begin()  # 开始事务
-            yield db
-            await db.commit()  # 提交事务
-        except Exception as e:
-            await db.rollback()  # 回滚
-            raise HTTPException(status_code=500, detail=e.args[0])
-        finally:
-            await db.close()
+    async with async_db_scope() as db:
+        yield db

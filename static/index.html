@@ -260,7 +260,7 @@
     // 全局变量
     let currentConversationId = null;
     let currentChatId = null;
-    let socket = null;
+    let currentSSEController = null; // Manages the SSE connection AbortController
     let isGenerating = false;
     let currentAnswer = '';
 
@@ -343,7 +343,7 @@
 
           result.data.forEach(model => {
             const option = document.createElement('option');
-            option.value = model.id;
+            option.value = model.llm_id;
             option.textContent = model.name;
             modelSelector.appendChild(option);
           });
@@ -463,58 +463,109 @@
       isGenerating = true;
       currentAnswer = '';
 
-      // 创建WebSocket连接
-      if (socket) {
-        socket.close();
+      // Abort previous SSE connection if any
+      if (currentSSEController) {
+        currentSSEController.abort();
       }
+      currentSSEController = new AbortController();
 
-      socket = new WebSocket(`ws://${window.location.host}/chat/stream`);
-
-      socket.onopen = function () {
-        // 发送初始参数
-        socket.send(JSON.stringify({
+      fetch('/chat/sse', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'text/event-stream'
+        },
+        body: JSON.stringify({
           conversation_id: currentConversationId,
-          chat_id: currentChatId,
+          chat_id: currentChatId, // currentChatId is null initially and not updated
           question: message,
           llm_id: modelSelector.value,
           prompt_template_id: null
-        }));
-      };
+        }),
+        signal: currentSSEController.signal
+      })
+      .then(async response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+          });
+        }
+        if (!response.body) {
+          throw new Error('Response body is null');
+        }
 
-      socket.onmessage = function (event) {
-        if (event.data === '@@@end@@@') {
-          // 结束生成
-          isGenerating = false;
-          removeTypingIndicator();
-          addMessage('ai', currentAnswer);
-          scrollToBottom();
-        } else {
-          try {
-            const data = JSON.parse(event.data);
-            if (data.chunk) {
-              currentAnswer += data.chunk;
-              updateTypingIndicator(currentAnswer);
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let buffer = '';
+
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            // 处理缓冲区中的事件（由双换行符分隔）
+            let eventEndIndex;
+            while ((eventEndIndex = buffer.indexOf('\r\n\r\n')) >= 0) {
+                const eventChunk = buffer.substring(0, eventEndIndex);
+                buffer = buffer.substring(eventEndIndex + 2);
+
+                let eventName;
+                let eventData;
+                eventChunk.split('\n').forEach(line => {
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex <= 0) return;
+                    const field = line.substring(0, colonIndex).trim();
+                    const value = line.substring(colonIndex + 1).trim();
+
+                    if (field === 'event') {
+                        eventName = value;
+                    } else if (field === 'data') {
+                        eventData = value;
+                    }
+                });
+
+                if (eventName === 'start') {
+                  // Typing indicator is already shown
+                } else if (eventName === 'message') {
+                  try {
+                    const dataPayload = JSON.parse(eventData);
+                    if (dataPayload.chunk) {
+                      currentAnswer += dataPayload.chunk;
+                      updateTypingIndicator(currentAnswer);
+                    }
+                  } catch (e) {
+                    console.error('Error parsing SSE message data:', e, 'Raw data:', eventData);
+                  }
+                } else if (eventName === 'finish') {
+                  isGenerating = false;
+                  removeTypingIndicator();
+                  if (currentAnswer) {
+                    addMessage('ai', currentAnswer);
+                  } else {
+                    // Handle cases where 'close' is received without any 'message' events
+                    // addMessage('ai', '对话已结束。');
+                  }
+                  scrollToBottom();
+                  // No need to explicitly abort currentSSEController here, stream ended naturally.
+                  return; // Stop processing further events from this stream
+                } else if (eventName === 'ping') {
+                  // console.log('SSE Ping received');
+                }
             }
-          } catch (e) {
-            console.error('解析消息失败:', e);
-          }
         }
-      };
-
-      socket.onerror = function (error) {
-        console.error('WebSocket错误:', error);
-        isGenerating = false;
-        removeTypingIndicator();
-        addMessage('ai', '发生错误，请重试。');
-      };
-
-      socket.onclose = function () {
-        if (isGenerating) {
+      })
+      .catch(error => {
+        console.error('SSE Fetch Error:', error);
+        if (error.name === 'AbortError') {
+          console.log('SSE Fetch aborted.'); // Expected when starting a new message
+          // UI cleanup for aborted state is handled by the new message's showTypingIndicator etc.
+        } else {
           isGenerating = false;
           removeTypingIndicator();
-          addMessage('ai', currentAnswer || '连接已关闭，请重试。');
+          addMessage('ai', '连接聊天服务失败，请重试。');
+          scrollToBottom();
         }
-      };
+      });
     }
 
     // 添加消息到聊天窗口
