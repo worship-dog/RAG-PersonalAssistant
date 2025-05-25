@@ -1,6 +1,7 @@
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_community.chat_message_histories import RedisChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain_ollama import OllamaLLM
 
 from app.models.prompt_template import PromptTemplate
@@ -20,14 +21,13 @@ class ChainManager:
         chain_key = f"{llm.model}_{prompt_template.name}"
         self.prompt_template = ChatPromptTemplate.from_messages([
             ("system", prompt_template.content),
+            # MessagesPlaceholder(variable_name="history"),
             ("human", "{input}")
         ])
         self.llm = llm
 
         chain = (
-            RunnablePassthrough()
-            # | RunnableLambda(debug_params)
-            | self.prompt_template
+            self.prompt_template
             | self.llm
             | StrOutputParser()
         )
