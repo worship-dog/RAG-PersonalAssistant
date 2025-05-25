@@ -4,161 +4,571 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LangChain 流式问答演示</title>
+  <title>AI助手</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-      line-height: 1.6;
+      height: 100vh;
+      overflow: hidden;
+      background-color: #f8f9fa;
     }
 
-    #chat-container {
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 20px;
-      background-color: #f9f9f9;
-    }
-
-    #output {
-      min-height: 200px;
-      border: 1px solid #eee;
-      padding: 10px;
-      margin: 20px 0;
-      background: white;
-      white-space: pre-wrap;
-      /* 保留换行符 */
-    }
-
-    #input-container {
+    .chat-container {
+      height: 100vh;
       display: flex;
-      gap: 10px;
     }
 
-    #question {
+    .sidebar {
+      width: 280px;
+      background-color: #ffffff;
+      border-right: 1px solid #dee2e6;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .chat-area {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      background-color: #f8f9fa;
+    }
+
+    .conversation-list {
+      flex: 1;
+      overflow-y: auto;
       padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
     }
 
-    button {
-      padding: 10px 20px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #0056b3;
-    }
-
-    button:disabled {
-      background: #cccccc;
-    }
-
-    .question {
-      color: #007bff;
-      font-weight: bold;
+    .conversation-item {
+      padding: 10px 15px;
       margin-bottom: 5px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .answer {
+    .conversation-item:hover {
+      background-color: #f0f0f0;
+    }
+
+    .conversation-item.active {
+      background-color: #e9ecef;
+      font-weight: 500;
+    }
+
+    .new-chat-btn {
+      margin: 15px;
+    }
+
+    .chat-header {
+      padding: 15px 20px;
+      border-bottom: 1px solid #dee2e6;
+      background-color: #ffffff;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .message {
       margin-bottom: 20px;
+      max-width: 85%;
+    }
+
+    .message-human {
+      margin-left: auto;
+    }
+
+    .message-ai {
+      margin-right: auto;
+    }
+
+    .message-content {
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .message-human .message-content {
+      background-color: #007bff;
+      color: white;
+      border-top-right-radius: 4px;
+    }
+
+    .message-ai .message-content {
+      background-color: #ffffff;
+      border-top-left-radius: 4px;
+    }
+
+    .chat-input-container {
+      padding: 15px 20px;
+      background-color: #ffffff;
+      border-top: 1px solid #dee2e6;
+    }
+
+    .chat-input {
+      border-radius: 20px;
+      resize: none;
+      padding: 10px 15px;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+
+    .send-btn {
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .model-selector {
+      margin-bottom: 15px;
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: #6c757d;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+    }
+
+    .sidebar-footer {
+      padding: 15px;
+      border-top: 1px solid #dee2e6;
+    }
+
+    .typing-indicator {
+      display: inline-block;
+      padding: 10px 15px;
+      background-color: #f1f3f5;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .typing-indicator span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background-color: #adb5bd;
+      border-radius: 50%;
+      margin-right: 5px;
+      animation: typing 1s infinite ease-in-out;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+      margin-right: 0;
+    }
+
+    @keyframes typing {
+      0% {
+        transform: translateY(0);
+      }
+
+      50% {
+        transform: translateY(-5px);
+      }
+
+      100% {
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
 
 <body>
-  <div id="chat-container">
-    <h1>LangChain 流式问答</h1>
-    <div id="output"></div>
-    <div id="input-container">
-      <input type="text" id="question" placeholder="输入你的问题..." />
-      <button id="send-btn" onclick="sendQuestion()">发送</button>
+  <div class="chat-container">
+    <!-- 左侧边栏 -->
+    <div class="sidebar">
+      <button class="btn btn-primary new-chat-btn" id="newChatBtn">
+        <i class="bi bi-plus-lg"></i> 新建对话
+      </button>
+
+      <div class="conversation-list" id="conversationList">
+        <!-- 对话列表将通过JS动态加载 -->
+      </div>
+
+      <div class="sidebar-footer">
+        <a href="/config.html" class="btn btn-outline-secondary btn-sm w-100">
+          <i class="bi bi-gear"></i> 系统设置
+        </a>
+      </div>
+    </div>
+
+    <!-- 右侧聊天区域 -->
+    <div class="chat-area">
+      <div id="emptyState" class="empty-state">
+        <i class="bi bi-chat-dots"></i>
+        <h4>开始一个新对话</h4>
+        <p>点击左侧"新建对话"按钮开始聊天</p>
+      </div>
+
+      <div id="chatInterface" style="display: none; height: 100%; flex-direction: column;">
+        <div class="chat-header">
+          <h5 id="currentConversationTitle">对话</h5>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <!-- 消息将通过JS动态加载 -->
+        </div>
+
+        <div class="chat-input-container">
+          <div class="row g-2">
+            <div class="col-md-3">
+              <select class="form-select model-selector" id="modelSelector">
+                <!-- 模型选项将通过JS动态加载 -->
+              </select>
+            </div>
+            <div class="col">
+              <div class="input-group">
+                <textarea class="form-control chat-input" id="messageInput" placeholder="输入消息..." rows="1"></textarea>
+                <button class="btn btn-primary send-btn" id="sendBtn">
+                  <i class="bi bi-send"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script>
-    const outputEl = document.getElementById("output");
-    const questionEl = document.getElementById("question");
-    const sendBtn = document.getElementById("send-btn");
-    let currentChatId = null; // 维护当前会话ID
+    // 全局变量
+    let currentConversationId = null;
+    let currentChatId = null;
+    let socket = null;
+    let isGenerating = false;
+    let currentAnswer = '';
 
-    // 发送问题到后端
-    async function sendQuestion () {
-      const question = questionEl.value.trim();
-      if (!question) return;
+    // DOM元素
+    const conversationList = document.getElementById('conversationList');
+    const chatMessages = document.getElementById('chatMessages');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const newChatBtn = document.getElementById('newChatBtn');
+    const modelSelector = document.getElementById('modelSelector');
+    const emptyState = document.getElementById('emptyState');
+    const chatInterface = document.getElementById('chatInterface');
+    const currentConversationTitle = document.getElementById('currentConversationTitle');
 
-      // 禁用按钮，防止重复提交
-      sendBtn.disabled = true;
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadConversations();
+      await loadModels();
+      setupEventListeners();
+    });
 
-      // 清空输入框
-      questionEl.value = "";
+    // 设置事件监听器
+    function setupEventListeners() {
+      // 发送消息按钮点击事件
+      sendBtn.addEventListener('click', sendMessage);
 
-      // 展示用户问题
-      outputEl.innerHTML += `<div class="question">你：${question}</div>`;
-      outputEl.innerHTML += `<div class="answer" id="current-answer">模型：</div>`;
-
-      // 滚动到底部
-      outputEl.scrollTop = outputEl.scrollHeight;
-
-      // 获取流式响应
-      try {
-        await fetchStream(question);
-      } catch (err) {
-        console.error("请求出错:", err);
-        document.getElementById("current-answer").innerHTML += " [请求失败]";
-      } finally {
-        sendBtn.disabled = false;
-      }
-    }
-
-    // 流式获取回答
-    async function fetchStream (question) {
-      const payload = {
-        conversation_id: "",  // 初始为空字符串
-        chat_id: crypto.randomUUID(),
-        question: question,
-        llm_id: "a31e8830-abac-4004-a980-1f1ab53a7b29",  // 默认LLM ID
-        prompt_template_id: ""  // 默认提示词模板ID
-      };
-
-      const response = await fetch("/chat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),  // 使用完整参数结构
+      // 输入框回车发送
+      messageInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+        }
       });
 
-      if (!response.ok) throw new Error("请求失败");
+      // 新建对话按钮点击事件
+      newChatBtn.addEventListener('click', createNewConversation);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      const answerEl = document.getElementById("current-answer");
+      // 输入框自动调整高度
+      messageInput.addEventListener('input', () => {
+        messageInput.style.height = 'auto';
+        messageInput.style.height = (messageInput.scrollHeight < 120) ? messageInput.scrollHeight + 'px' : '120px';
+      });
+    }
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+    // 加载对话列表
+    async function loadConversations() {
+      try {
+        const response = await fetch('/conversation/list');
+        const result = await response.json();
 
-        const chunk = decoder.decode(value);
-        // 处理SSE格式，检查ID是否匹配
-        const eventData = chunk.match(/data: (.*)/)[1];
-        answerEl.innerHTML += eventData;
+        if (result.code === 200 && result.data) {
+          conversationList.innerHTML = '';
 
-        // 滚动到底部
-        outputEl.scrollTop = outputEl.scrollHeight;
+          result.data.forEach(conversation => {
+            const item = document.createElement('div');
+            item.className = 'conversation-item';
+            item.dataset.id = conversation.id;
+            item.textContent = conversation.name;
+
+            item.addEventListener('click', () => {
+              selectConversation(conversation.id, conversation.name);
+            });
+
+            conversationList.appendChild(item);
+          });
+        }
+      } catch (error) {
+        console.error('加载对话列表失败:', error);
       }
     }
 
-    // 支持按Enter键发送
-    questionEl.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") sendQuestion();
-    });
+    // 加载模型列表
+    async function loadModels() {
+      try {
+        const response = await fetch('/llm/list');
+        const result = await response.json();
+
+        if (result.code === 200 && result.data) {
+          modelSelector.innerHTML = '';
+
+          result.data.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model.id;
+            option.textContent = model.name;
+            modelSelector.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('加载模型列表失败:', error);
+      }
+    }
+
+    // 创建新对话
+    async function createNewConversation() {
+      try {
+        const response = await fetch('/conversation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            name: '新对话 ' + new Date().toLocaleTimeString()
+          })
+        });
+
+        const result = await response.json();
+
+        if (result.code === 200 && result.data) {
+          await loadConversations();
+          selectConversation(result.data.conversation_id, '新对话');
+        }
+      } catch (error) {
+        console.error('创建新对话失败:', error);
+      }
+    }
+
+    // 选择对话
+    async function selectConversation(conversationId, conversationName) {
+      // 更新UI状态
+      document.querySelectorAll('.conversation-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.id === conversationId) {
+          item.classList.add('active');
+        }
+      });
+
+      currentConversationId = conversationId;
+      currentConversationTitle.textContent = conversationName;
+
+      // 显示聊天界面
+      emptyState.style.display = 'none';
+      chatInterface.style.display = 'flex';
+
+      // 加载聊天记录
+      await loadChatHistory(conversationId);
+    }
+
+    // 加载聊天历史
+    async function loadChatHistory(conversationId) {
+      try {
+        const response = await fetch(`/chat/list?conversation_id=${conversationId}`);
+        const result = await response.json();
+
+        chatMessages.innerHTML = '';
+
+        if (result.code === 200 && result.data) {
+          result.data.forEach(chat => {
+            // 添加用户消息
+            if (chat.human) {
+              addMessage('human', chat.human);
+            }
+
+            // 添加AI回复
+            if (chat.ai && chat.ai.length > 0) {
+              chat.ai.forEach(aiResponse => {
+                addMessage('ai', aiResponse.answer);
+              });
+            }
+          });
+
+          // 滚动到底部
+          scrollToBottom();
+        }
+      } catch (error) {
+        console.error('加载聊天历史失败:', error);
+      }
+    }
+
+    // 发送消息
+    function sendMessage() {
+      const message = messageInput.value.trim();
+
+      if (!message || isGenerating) return;
+
+      if (!currentConversationId) {
+        createNewConversation().then(() => {
+          sendMessageToServer(message);
+        });
+      } else {
+        sendMessageToServer(message);
+      }
+    }
+
+    // 向服务器发送消息
+    function sendMessageToServer(message) {
+      // 添加用户消息到聊天窗口
+      addMessage('human', message);
+
+      // 清空输入框
+      messageInput.value = '';
+      messageInput.style.height = 'auto';
+
+      // 滚动到底部
+      scrollToBottom();
+
+      // 显示正在输入指示器
+      showTypingIndicator();
+
+      // 设置生成状态
+      isGenerating = true;
+      currentAnswer = '';
+
+      // 创建WebSocket连接
+      if (socket) {
+        socket.close();
+      }
+
+      socket = new WebSocket(`ws://${window.location.host}/chat/stream`);
+
+      socket.onopen = function () {
+        // 发送初始参数
+        socket.send(JSON.stringify({
+          conversation_id: currentConversationId,
+          chat_id: currentChatId,
+          question: message,
+          llm_id: modelSelector.value,
+          prompt_template_id: null
+        }));
+      };
+
+      socket.onmessage = function (event) {
+        if (event.data === '@@@end@@@') {
+          // 结束生成
+          isGenerating = false;
+          removeTypingIndicator();
+          addMessage('ai', currentAnswer);
+          scrollToBottom();
+        } else {
+          try {
+            const data = JSON.parse(event.data);
+            if (data.chunk) {
+              currentAnswer += data.chunk;
+              updateTypingIndicator(currentAnswer);
+            }
+          } catch (e) {
+            console.error('解析消息失败:', e);
+          }
+        }
+      };
+
+      socket.onerror = function (error) {
+        console.error('WebSocket错误:', error);
+        isGenerating = false;
+        removeTypingIndicator();
+        addMessage('ai', '发生错误，请重试。');
+      };
+
+      socket.onclose = function () {
+        if (isGenerating) {
+          isGenerating = false;
+          removeTypingIndicator();
+          addMessage('ai', currentAnswer || '连接已关闭，请重试。');
+        }
+      };
+    }
+
+    // 添加消息到聊天窗口
+    function addMessage(type, content) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message message-${type}`;
+
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+
+      if (type === 'ai') {
+        // 使用marked.js渲染Markdown
+        contentDiv.innerHTML = marked.parse(content);
+      } else {
+        contentDiv.textContent = content;
+      }
+
+      messageDiv.appendChild(contentDiv);
+      chatMessages.appendChild(messageDiv);
+
+      scrollToBottom();
+    }
+
+    // 显示正在输入指示器
+    function showTypingIndicator() {
+      const indicatorDiv = document.createElement('div');
+      indicatorDiv.id = 'typingIndicator';
+      indicatorDiv.className = 'typing-indicator';
+      indicatorDiv.innerHTML = '<span></span><span></span><span></span>';
+      chatMessages.appendChild(indicatorDiv);
+      scrollToBottom();
+    }
+
+    // 更新正在输入指示器
+    function updateTypingIndicator(content) {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) {
+        indicator.innerHTML = marked.parse(content);
+      }
+      scrollToBottom();
+    }
+
+    // 移除正在输入指示器
+    function removeTypingIndicator() {
+      const indicator = document.getElementById('typingIndicator');
+      if (indicator) {
+        indicator.remove();
+      }
+    }
+
+    // 滚动到底部
+    function scrollToBottom() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
   </script>
 </body>
 
