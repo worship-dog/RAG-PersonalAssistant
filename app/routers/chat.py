@@ -5,17 +5,70 @@
 Author: worship-dog
 Email: worship76@foxmail.com>
 """
+from collections import defaultdict
+import asyncio
+import json
+
 from fastapi import APIRouter, Depends, Request, WebSocket
+from sse_starlette import EventSourceResponse, ServerSentEvent
 
 from app.services.chat import chat_manager
 from app.utils.database import get_sync_db, get_async_db, AsyncSession, Session
 from app.utils.timer import timer_dict, Timer
 
 
+client_queues = defaultdict(asyncio.Queue)  # sse 客户端
+
 router = APIRouter(
     tags=["chat"]
 )
 
+
+@router.post("/chat/sse")
+async def sse_chat(request: Request, session: AsyncSession = Depends(get_async_db)):
+    """
+    SSE 流式问答
+    :param request: conversation_id, chat_id, question, llm_id, prompt_template_id
+    :param session: 异步数据库连接
+    :return: SSE消息流
+    """
+    answer = ""
+    session_id = None
+    client_id = ""
+
+    # 初始化事件队列
+    if client_id not in client_queues:
+        client_queues[client_id] = asyncio.Queue()
+
+    async def generate_answer():
+        await client_queues[client_id].put({"status": "start"})
+        # 流式生成回答
+        async for chunk in chat_manager.astream_generate_answer(timer_dict[session_id], session, **data):
+            await client_queues[client_id].put({"status": "answering", "chunk": chunk})
+        await client_queues[client_id].put({"status": "end"})
+
+    asyncio.create_task(generate_answer())
+
+    async def event_generator():
+        try:
+            while True:
+                # 获取事件（支持超时检测）
+                try:
+                    raw_data = await asyncio.wait_for(client_queues[client_id].get(), timeout=10)
+                    if raw_data is None:  # 检测到结束标志
+                        break
+                    yield ServerSentEvent(
+                        data=json.dumps(raw_data),  # data必须为字符串
+                        event=raw_data["status"]  # checking  | complete | failed
+                    )
+                except asyncio.TimeoutError:
+                    yield {"event": "ping"}  # 发送心跳包保持连接
+        except asyncio.CancelledError:
+            # 客户端断开连接时触发清理
+            client_queues.pop(client_id, None)
+
+    return EventSourceResponse(event_generator())
+    
 
 @router.websocket("/chat/stream")
 async def websocket_chat(websocket: WebSocket, session: AsyncSession = Depends(get_async_db)):
