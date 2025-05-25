@@ -198,7 +198,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">描述</label>
-              <textarea class="form-control" name="description" rows="3"></textarea>
+              <textarea class="form-control" name="display" rows="3"></textarea>
             </div>
           </form>
         </div>
@@ -331,7 +331,7 @@
                             </div>
                         </div>
                         <div class="model-card-body">
-                            <p><strong>描述:</strong> ${collection.display?.display || '无'}</p>
+                            <p><strong>描述:</strong> ${collection.display || '无'}</p>
                         </div>
                     `;
           container.appendChild(card);
@@ -358,6 +358,7 @@
 
         if (response.ok) {
           $('#addLLMModal').modal('hide');
+          document.activeElement.blur();
           form.reset();
           loadLLMs();
         }
@@ -383,6 +384,7 @@
 
         if (response.ok) {
           $('#addEmbeddingModal').modal('hide');
+          document.activeElement.blur();
           form.reset();
           loadEmbeddings();
         }
@@ -397,7 +399,7 @@
       const formData = new FormData(form);
       const data = {
         name: formData.get('name'),
-        display: formData.get('description')
+        display: formData.get('display')
       };
 
       try {
@@ -411,6 +413,7 @@
 
         if (response.ok) {
           $('#addCollectionModal').modal('hide');
+          document.activeElement.blur();
           form.reset();
           loadCollections();
         }
@@ -517,7 +520,7 @@
                             </div>
                             <div class="mb-3">
                                 <label class="form-label">描述</label>
-                                <textarea class="form-control" name="description" rows="3">${collection.display?.display || ''}</textarea>
+                                <textarea class="form-control" name="display" rows="3">${collection.display || ''}</textarea>
                             </div>
                         </form>
                     `;
@@ -550,7 +553,7 @@
           requestData = {
             collection_id: data.collection_id,
             name: data.name,
-            description: data.description || ''
+            display: data.display || ''
           };
         }
 
@@ -564,6 +567,7 @@
 
         if (response.ok) {
           $('#editModal').modal('hide');
+          document.activeElement.blur();
           form.reset();
           if (endpoint === '/llm') {
             loadLLMs();
