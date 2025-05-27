@@ -24,7 +24,9 @@ class CollectionManager:
         ).all()
 
         rows = [{
-            "collection_id": collection.uuid, "name": collection.name, "display": collection.cmetadata.get("display")
+            "collection_id": collection.uuid,
+            "name": collection.name,
+            "display": collection.cmetadata.get("display") if collection.cmetadata else ""
         } for collection in collections]
         return rows
 
