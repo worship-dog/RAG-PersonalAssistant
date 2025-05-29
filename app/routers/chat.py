@@ -53,11 +53,15 @@ async def sse_chat(request: Request):
         await chat_queue.put({"status": "start"})
 
         async with async_db_scope() as session:
-            # 流式生成回答
-            async for chunk in chat_manager.astream_generate_answer(
-                    timer_dict[chat_key], session, **data):
-                await chat_queue.put({"status": "message", "chunk": chunk})
-                answer += chunk
+            try:
+                # 流式生成回答
+                async for chunk in chat_manager.astream_generate_answer(
+                        timer_dict[chat_key], session, **data):
+                    await chat_queue.put({"status": "message", "chunk": chunk})
+                    answer += chunk
+            except Exception as e:
+                print(e)
+                await chat_queue.put({"status": "error", "data": str(e)})
 
             await chat_queue.put({"status": "finish"})
             await chat_queue.put({"status": "close"})

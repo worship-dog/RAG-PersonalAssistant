@@ -88,6 +88,16 @@
       font-weight: 400;
     }
 
+    .more-btn {
+      padding: 0.25rem 0.5rem;
+      opacity: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .conversation-item:hover .more-btn {
+      opacity: 1;
+    }
+
     .new-chat-btn {
       margin: 20px;
       padding: 10px 16px;
@@ -135,6 +145,7 @@
       max-width: max-content;
       width: fit-content;
       max-width: 80%;
+      margin-bottom: 10px;
     }
 
     .message-content {
@@ -258,6 +269,9 @@
       margin-bottom: 20px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       transition: box-shadow 0.3s ease;
+      font-size: 15px;
+      line-height: 1.5;
+      font-weight: 450;
     }
 
     .typing-indicator:hover {
@@ -281,6 +295,29 @@
     .typing-indicator span:nth-child(3) {
       animation-delay: 0.4s;
       margin-right: 0;
+    }
+
+    .thinking-toggle {
+      padding: 0;
+      font-size: 16px;
+      font-weight: 400;
+      color: #495057;
+      text-decoration: none;
+    }
+
+    .thinking-toggle:hover {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    .thinking-content {
+      margin-top: 10px;
+      background-color: #e9ecef;
+      color: #495057;
+      border-left: 3px solid #6c757d;
+      font-style: italic;
+      padding: 15px 20px;
+      border-radius: 12px;
     }
 
     @keyframes typing {
@@ -425,12 +462,74 @@
 
           result.data.forEach(conversation => {
             const item = document.createElement('div');
-            item.className = 'conversation-item';
+            item.className = 'conversation-item d-flex justify-content-between align-items-center';
             item.dataset.id = conversation.id;
-            item.textContent = conversation.name;
 
+            const itemText = document.createElement('span');
+            itemText.textContent = conversation.name;
+            item.appendChild(itemText);
+
+            const moreBtn = document.createElement('button');
+            moreBtn.className = 'btn btn-sm btn-outline-secondary more-btn';
+            moreBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
+            item.appendChild(moreBtn);
             item.addEventListener('click', () => {
               selectConversation(conversation.id, conversation.name);
+            });
+            moreBtn.addEventListener('click', (e) => {
+              e.stopPropagation();
+
+              Swal.fire({
+                title: '操作选项',
+                showDenyButton: true,
+                showCancelButton: true,
+                confirmButtonText: '编辑',
+                denyButtonText: '删除',
+                cancelButtonText: '取消'
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  // 编辑操作
+                  Swal.fire({
+                    title: '编辑对话名称',
+                    input: 'text',
+                    inputValue: conversation.name,
+                    showCancelButton: true,
+                    confirmButtonText: '保存',
+                    cancelButtonText: '取消'
+                  }).then((editResult) => {
+                    if (editResult.isConfirmed) {
+                      fetch('/conversation', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          conversation_id: conversation.id,
+                          name: editResult.value
+                        })
+                      }).then(() => loadConversations());
+                    }
+                  });
+                } else if (result.isDenied) {
+                  // 删除操作
+                  Swal.fire({
+                    title: '确认删除？',
+                    text: '此操作无法撤销',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: '删除',
+                    cancelButtonText: '取消'
+                  }).then((deleteResult) => {
+                    if (deleteResult.isConfirmed) {
+                      fetch('/conversation', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          conversation_id: conversation.id
+                        })
+                      }).then(() => loadConversations());
+                    }
+                  });
+                }
+              });
             });
 
             conversationList.appendChild(item);
@@ -672,15 +771,13 @@
                 removeTypingIndicator();
                 if (currentAnswer) {
                   addMessage('ai', currentAnswer);
-                } else {
-                  // Handle cases where 'close' is received without any 'message' events
-                  // addMessage('ai', '对话已结束。');
                 }
                 scrollToBottom();
-                // No need to explicitly abort currentSSEController here, stream ended naturally.
-                return; // Stop processing further events from this stream
-              } else if (eventName === 'ping') {
-                // console.log('SSE Ping received');
+              } else if (eventName === 'error') {
+                isGenerating = false;
+                removeTypingIndicator();
+                addMessage('ai', '连接聊天服务失败，请重试。');
+                scrollToBottom();
               }
             }
           }
@@ -701,21 +798,95 @@
 
     // 添加消息到聊天窗口
     function addMessage(type, content) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message message-${type}`;
+      // 如果是AI消息，检查是否包含思考内容
+      if (type === 'ai' && content.includes('<think>')) {
+        // 提取思考内容
+        const thinkRegex = /<think>([\s\S]*?)<\/think>/;
+        const thinkMatch = content.match(thinkRegex);
 
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'message-content';
+        if (thinkMatch) {
+          // 提取思考内容和回答内容
+          const thinkingContent = thinkMatch[1].trim();
+          // 移除思考内容标签，获取回答内容
+          const answerContent = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
 
-      if (type === 'ai') {
-        // 使用marked.js渲染Markdown
-        contentDiv.innerHTML = marked.parse(content);
+          // 创建思考内容元素
+          if (thinkingContent) {
+            const thinkingDiv = document.createElement('div');
+            thinkingDiv.className = 'message message-thinking';
+
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn btn-sm btn-link thinking-toggle';
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-down"></i> 思考过程';
+            toggleBtn.addEventListener('click', function () {
+              const contentDiv = this.nextElementSibling;
+              const icon = this.querySelector('i');
+              if (contentDiv.style.display === 'none') {
+                contentDiv.style.display = 'block';
+                icon.className = 'bi bi-chevron-down';
+              } else {
+                contentDiv.style.display = 'none';
+                icon.className = 'bi bi-chevron-right';
+              }
+            });
+            thinkingDiv.appendChild(toggleBtn);
+
+            const thinkingContentDiv = document.createElement('div');
+            thinkingContentDiv.className = 'message-content thinking-content';
+            thinkingContentDiv.innerHTML = marked.parse(thinkingContent);
+            thinkingContentDiv.style.display = 'none';
+            thinkingDiv.appendChild(thinkingContentDiv);
+
+            chatMessages.appendChild(thinkingDiv);
+
+            // 添加分隔线
+            const separator = document.createElement('hr');
+            separator.className = 'message-separator';
+            chatMessages.appendChild(separator);
+          }
+
+          // 创建回答内容元素
+          if (answerContent) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${type}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = marked.parse(answerContent);
+
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+          }
+        } else {
+          // 没有找到思考标签，按原样显示
+          const messageDiv = document.createElement('div');
+          messageDiv.className = `message message-${type}`;
+
+          const contentDiv = document.createElement('div');
+          contentDiv.className = 'message-content';
+          contentDiv.innerHTML = marked.parse(content);
+
+          messageDiv.appendChild(contentDiv);
+          chatMessages.appendChild(messageDiv);
+        }
       } else {
-        contentDiv.textContent = content;
-      }
+        // 非AI消息或不包含思考内容的AI消息，按原样显示
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message message-${type}`;
 
-      messageDiv.appendChild(contentDiv);
-      chatMessages.appendChild(messageDiv);
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'message-content';
+
+        if (type === 'ai') {
+          // 使用marked.js渲染Markdown
+          contentDiv.innerHTML = marked.parse(content);
+        } else {
+          contentDiv.textContent = content;
+        }
+
+        messageDiv.appendChild(contentDiv);
+        chatMessages.appendChild(messageDiv);
+      }
 
       scrollToBottom();
     }
@@ -734,7 +905,44 @@
     function updateTypingIndicator(content) {
       const indicator = document.getElementById('typingIndicator');
       if (indicator) {
-        indicator.innerHTML = marked.parse(content);
+        // 检查是否包含思考内容
+        if (content.includes('<think>')) {
+          // 提取思考内容
+          const thinkRegex = /<think>([\s\S]*?)<\/think>/;
+          const thinkMatch = content.match(thinkRegex);
+
+          if (thinkMatch) {
+            // 提取思考内容和回答内容
+            const thinkingContent = thinkMatch[1].trim();
+            // 移除思考内容标签，获取回答内容
+            const answerContent = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
+
+            // 构建显示内容
+            let displayContent = '';
+
+            if (thinkingContent) {
+              displayContent += '<div class="thinking-label" style="font-weight: 400; font-size: 16px;">思考过程</div>';
+              displayContent += '<div class="message-content" style="background-color: #e9ecef; color: #495057; border-left: 3px solid #6c757d; font-style: italic; ">';
+              displayContent += marked.parse(thinkingContent);
+              displayContent += '</div>';
+
+              if (answerContent) {
+                displayContent += '<hr class="message-separator">';
+                displayContent += '<div class="message-content">';
+                displayContent += marked.parse(answerContent);
+                displayContent += '</div>';
+              }
+            } else {
+              displayContent = marked.parse(content);
+            }
+
+            indicator.innerHTML = displayContent;
+          } else {
+            indicator.innerHTML = marked.parse(content);
+          }
+        } else {
+          indicator.innerHTML = marked.parse(content);
+        }
       }
       scrollToBottom();
     }
@@ -752,6 +960,7 @@
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
   </script>
+
 </body>
 
 </html>
