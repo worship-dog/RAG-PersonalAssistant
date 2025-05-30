@@ -1,4 +1,3 @@
-from langchain_ollama import OllamaLLM
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.models import Chat, LLM, PromptTemplate
@@ -7,8 +6,8 @@ from app.utils.database import AsyncSession, Session
 
 
 class ChatManager:
+    @staticmethod
     async def astream_generate_answer(
-            self,
             timer,
             session: AsyncSession,
             conversation_id: str,
@@ -19,8 +18,8 @@ class ChatManager:
     ):
         # 初始化大语言模型
         llm: LLM|None = await session.get(LLM, llm_id)
-        # DB模型转为OllamaLLM模型
-        llm: OllamaLLM = llm.init()
+        # DB模型转为Chat模型
+        llm_chat = llm.init()
 
         # 初始化提示词模板
         if prompt_template_id:
@@ -31,11 +30,12 @@ class ChatManager:
             prompt_template.content = "你是一个智能助手，帮助用户解答以下问题"
 
         timer.start_timer()  # 开始思考计时
-        chain = chain_manager.get_chain(prompt_template, llm)
+        chain = chain_manager.get_chain(prompt_template, llm_chat)
         async for token in chain.astream(input={"input": question}):
             yield token
 
-    async def save_chat(self, session: AsyncSession, answer, think_time, **data):
+    @staticmethod
+    async def save_chat(session: AsyncSession, answer, think_time, **data):
         if data.get("chat_id"):
             chat = await session.get(Chat, data["chat_id"])
         else:
@@ -54,7 +54,8 @@ class ChatManager:
         await session.commit()
         return chat.id
     
-    def get_chats(self, session: Session, conversation_id):
+    @staticmethod
+    def get_chats(session: Session, conversation_id):
         chat_list = session.query(Chat.chat_content).filter_by(
             conversation_id=conversation_id
         ).order_by(Chat.create_time).all()

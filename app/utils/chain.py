@@ -2,7 +2,6 @@ from langchain_community.chat_message_histories import RedisChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_ollama import OllamaLLM
 
 from app.models.prompt_template import PromptTemplate
 
@@ -17,8 +16,7 @@ class ChainManager:
         self.llm = None
         self.chain_dict = {}
 
-    def _create_chain(self, prompt_template: PromptTemplate, llm: OllamaLLM):
-        chain_key = f"{llm.model}_{prompt_template.name}"
+    def _create_chain(self, prompt_template: PromptTemplate, llm, chain_key):
         self.prompt_template = ChatPromptTemplate.from_messages([
             ("system", prompt_template.content),
             # MessagesPlaceholder(variable_name="history"),
@@ -35,11 +33,12 @@ class ChainManager:
 
         return chain
 
-    def get_chain(self, prompt_template: PromptTemplate, llm: OllamaLLM):
-        chain_key = f"{llm.model}_{prompt_template.name}"
+    def get_chain(self, prompt_template: PromptTemplate, llm):
+        llm_name = llm.model if hasattr(llm, "model") else llm.model_name
+        chain_key = f"{llm_name}_{prompt_template.name}"
         chain = self.chain_dict.get(chain_key)
         if chain is None:
-            chain = self._create_chain(prompt_template, llm)
+            chain = self._create_chain(prompt_template, llm, chain_key)
         return chain
 
 
