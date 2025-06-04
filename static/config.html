@@ -553,7 +553,7 @@
     // 编辑嵌入模型
     async function editEmbedding(id) {
       try {
-        const response = await fetch('/api/embeddings/list`);
+        const response = await fetch('/api/embeddings/list');
         const embeddings = await response.json();
         const embedding = embeddings.data.find(e => e.embeddings_id === id);
 
@@ -591,7 +591,7 @@
     // 编辑知识库
     async function editCollection(id) {
       try {
-        const response = await fetch('/api/collection/list`);
+        const response = await fetch('/api/collection/list');
         const collections = await response.json();
         const collection = collections.data.find(c => c.collection_id === id);
 
