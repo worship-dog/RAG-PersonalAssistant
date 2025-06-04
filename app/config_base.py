@@ -23,6 +23,8 @@ db_config = {
 user_name = ""
 avatar = ""
 
+router_prefix = "/api"
+
 
 # 字典转对象
 def dict2obj(config_dict: dict):
