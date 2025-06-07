@@ -91,7 +91,7 @@ async def async_db_scope():
         await db.commit()  # 提交事务
     except Exception as e:
         await db.rollback()  # 回滚
-        raise HTTPException(status_code=500, detail=e.args[0])
+        raise HTTPException(status_code=500, detail=e)
     finally:
         await db.close()
 

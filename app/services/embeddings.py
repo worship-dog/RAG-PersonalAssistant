@@ -11,10 +11,45 @@ from app.utils.database import Session
 
 
 class EmbeddingsManager:
-    def get_embeddings_list(self, session: Session):
+
+    @staticmethod
+    def get_default_embeddings(session: Session):
+        """
+        获取默认的嵌入模型
+
+        :param session: 数据库会话
+        :return: 嵌入模型信息
+        """
+        return session.query(Embeddings).filter_by(default=True).first()
+
+    @staticmethod
+    def get_embeddings_by_id(session: Session, embeddings_id: str):
+        """
+        根据ID查询嵌入模型
+
+        :param session: 数据库会话
+        :param embeddings_id: 嵌入模型ID
+        :return: 嵌入模型信息
+        """
+        return session.query(Embeddings).filter_by(id=embeddings_id).first()
+
+    @staticmethod
+    def get_embeddings_by_name(session: Session, embeddings_name: str):
+        """
+        根据ID查询嵌入模型
+
+        :param session: 数据库会话
+        :param embeddings_name: 嵌入模型名
+        :return: 嵌入模型信息
+        """
+        return session.query(Embeddings).filter_by(name=embeddings_name).first()
+
+    @staticmethod
+    def get_embeddings_list(session: Session):
         """
         查询所有嵌入模型
 
+        :param session: 数据库会话
         :return: 包含嵌入模型信息的字典列表
         """
         embeddings_list = session.query(
@@ -32,10 +67,12 @@ class EmbeddingsManager:
         } for embeddings in embeddings_list]
         return rows
 
-    def add_embeddings(self, session: Session, source: str, name: str, base_url: str):
+    @staticmethod
+    def add_embeddings(session: Session, source: str, name: str, base_url: str):
         """
         新增嵌入模型到数据库
 
+        :param session: 数据库会话
         :param source: 模型来源(ollama/openai/other)
         :param name: 模型名称
         :param base_url: 服务地址
@@ -49,29 +86,33 @@ class EmbeddingsManager:
         session.add(embeddings)
         session.commit()
 
-    def update_embeddings(self, session: Session, embeddings_id: int, **kwargs):
+    @staticmethod
+    def update_embeddings(session: Session, embeddings_id: int, **kwargs):
         """
         更新嵌入模型
 
+        :param session: 数据库会话
         :param embeddings_id: 嵌入模型ID
         :param kwargs: 可更新字段(source, name, base_url)
         :return:
         """
-        embeddings = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
+        embeddings = session.query(Embeddings).filter_by(id=embeddings_id).first()
         if embeddings:
             for key, value in kwargs.items():
                 if hasattr(embeddings, key):
                     setattr(embeddings, key, value)
             session.commit()
 
-    def delete_embeddings(self, session: Session, embeddings_id: int):
+    @staticmethod
+    def delete_embeddings(session: Session, embeddings_id: int):
         """
         根据ID删除嵌入模型
 
+        :param session: 数据库会话
         :param embeddings_id: 要删除的嵌入模型ID
         :return: 如果删除成功返回True，未找到则返回False
         """
-        embeddings = session.query(Embeddings).filter(Embeddings.id == embeddings_id).first()
+        embeddings = session.query(Embeddings).filter_by(id=embeddings_id).first()
         if embeddings:
             session.delete(embeddings)
             session.commit()
