@@ -7,9 +7,12 @@ Email: worship76@foxmail.com>
 """
 import os
 
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, Form, File, UploadFile
 
-from app.utils.database import get_sync_db
+from app.services.collection import collection_manager
+from app.services.embeddings import embeddings_manager
+from app.utils.database import get_sync_db, Session
+from app.utils.vector import vector_manager
 
 
 router = APIRouter(
@@ -19,24 +22,21 @@ router = APIRouter(
 
 
 @router.post("/knowledge")
-async def create_knowledge(file: UploadFile = File(...), collection_id: str = None):
-    # 定义保存文件的目录
-    save_dir = f"static/knowledge/{collection_id}"
-    # 确保保存目录存在
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-    try:
-        # 拼接文件保存路径
-        file_path = os.path.join(save_dir, file.filename)
-        # 以二进制写入模式打开文件
-        with open(file_path, "wb") as f:
-            # 读取上传文件的所有内容并写入到本地文件
-            contents = await file.read()
-            f.write(contents)
-        return {"code": 200, "msg": f"文件 {file.filename} 上传成功"}
-    except Exception as e:
-        return {"code": 500, "msg": f"文件上传失败: {str(e)}"}
-
+async def create_knowledge(
+    session: Session = Depends(get_sync_db),
+    file: UploadFile = File(...),
+    collection_id: str = Form(...),
+    embeddings_id: str = Form(...)
+):
+    collection = collection_manager.get_collection_by_id(session, collection_id)
+    if not collection:
+        return {"code": 404, "msg": "知识库不存在"}
+    embeddings = embeddings_manager.get_embeddings_by_id(session, embeddings_id)
+    if not embeddings:
+        return {"code": 404, "msg": "嵌入模型不存在"}
+    vector_store = vector_manager.get_vector(collection.name, embeddings.init())
+    vector_store.add_texts([file.file.read()], [{"filename": file.filename}])
+    return {"code": 200, "msg": "上传成功"}
 
 @router.get("/knowledge")
 def get_knowledge():

@@ -1,6 +1,7 @@
+from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.models import Chat, LLM, PromptTemplate
+from app.models import Chat, Embeddings, LLM, PromptTemplate
 from app.utils.chain import chain_manager
 from app.utils.database import AsyncSession, Session
 
@@ -21,16 +22,26 @@ class ChatManager:
         # DB模型转为Chat模型
         llm_chat = llm.init()
 
+        # 初始化嵌入模型
+        stmt = select(Embeddings).where(Embeddings.default == True)
+        select_result = await session.execute(stmt)
+        embeddings = select_result.scalars().first()
+        # DB模型转为Embeddings模型
+        embeddings = embeddings.init()
+
         # 初始化提示词模板
         if prompt_template_id:
             prompt_template: PromptTemplate|None = await session.get(PromptTemplate, prompt_template_id)
         else:
             prompt_template = PromptTemplate()
             prompt_template.name = "默认"
-            prompt_template.content = "你是一个智能助手，帮助用户解答以下问题"
-
+            prompt_template.content = """
+你是一个智能助手，根据上下文和历史对话帮助用户解答问题
+**上下文**  
+{context}
+"""
         timer.start_timer()  # 开始思考计时
-        chain = chain_manager.get_chain(prompt_template, llm_chat)
+        chain = chain_manager.get_chain(prompt_template, llm_chat, embeddings)
         async for token in chain.astream(
             input={"input": question},
             config={"configurable": {"session_id": conversation_id}}
