@@ -1,14 +1,15 @@
-from langchain_community.chat_message_histories import RedisChatMessageHistory
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
 from app.models.prompt_template import PromptTemplate
+from app.utils.history_message import history_message_manager
 
 
 def debug_params(x):
     print(x)
     return x
+
 
 class ChainManager:
     def __init__(self):
@@ -19,19 +20,28 @@ class ChainManager:
     def _create_chain(self, prompt_template: PromptTemplate, llm, chain_key):
         self.prompt_template = ChatPromptTemplate.from_messages([
             ("system", prompt_template.content),
-            # MessagesPlaceholder(variable_name="history"),
+            MessagesPlaceholder(variable_name="history"),
             ("human", "{input}")
         ])
         self.llm = llm
 
         chain = (
-            self.prompt_template
+            history_message_manager.limit_history_messages
+            | self.prompt_template
             | self.llm
             | StrOutputParser()
         )
-        self.chain_dict.setdefault(chain_key, chain)
 
-        return chain
+        chain_with_history = RunnableWithMessageHistory(
+            chain,
+            lambda session_id: history_message_manager.get_history_messages(session_id),
+            input_messages_key="input",
+            history_messages_key="history"
+        )
+
+        self.chain_dict.setdefault(chain_key, chain_with_history)
+
+        return chain_with_history
 
     def get_chain(self, prompt_template: PromptTemplate, llm):
         llm_name = llm.model if hasattr(llm, "model") else llm.model_name

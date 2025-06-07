@@ -9,7 +9,6 @@ Email: worship76@foxmail.com>
 from pydantic import create_model
 from sys import modules
 
-
 db_config = {
     "db_host": (str, "localhost"),
     "db_port": (str, "5432"),
@@ -20,8 +19,17 @@ db_config = {
     "max_overflow": (int, 20)
 }
 
-user_name = ""
-avatar = ""
+redis_config = {
+    "host": (str, "localhost"),
+    "port": (int, 6379),
+    "db": (int, 0),
+}
+
+HISTORY_MAX_LENGTH = 40
+HISTORY_EXPIRE_TIME = 60 * 60 * 24
+
+USERNAME = ""
+AVATAR = ""
 
 
 # 字典转对象

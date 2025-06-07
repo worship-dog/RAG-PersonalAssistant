@@ -31,7 +31,10 @@ class ChatManager:
 
         timer.start_timer()  # 开始思考计时
         chain = chain_manager.get_chain(prompt_template, llm_chat)
-        async for token in chain.astream(input={"input": question}):
+        async for token in chain.astream(
+            input={"input": question},
+            config={"configurable": {"session_id": conversation_id}}
+        ):
             yield token
 
     @staticmethod

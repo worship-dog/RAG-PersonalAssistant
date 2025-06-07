@@ -14,6 +14,7 @@ from sse_starlette import EventSourceResponse, ServerSentEvent
 
 from app.services.chat import chat_manager
 from app.utils.database import async_db_scope, get_sync_db, Session
+from app.utils.history_message import history_message_manager
 from app.utils.timer import timer_dict, Timer
 
 
@@ -104,4 +105,5 @@ def get_chat_list(request: Request, session: Session = Depends(get_sync_db)):
     """
     conversation_id = request.query_params.get("conversation_id")
     data = chat_manager.get_chats(session, conversation_id)
+    history_message_manager.add_history_messages(conversation_id, data)
     return {"code": 200, "msg": "查询成功!", "data": data}

@@ -8,7 +8,7 @@ Email: worship76@foxmail.com>
 
 from fastapi import APIRouter
 
-from app.config import user_name, avatar
+from app.config import USERNAME, AVATAR
 
 
 router = APIRouter(tags=["auth"])
@@ -23,6 +23,6 @@ def login():
 def get_user_info():
     return {"code": 200, "msg": "success", "data": {
         "roles": ["admin"],
-        "name": user_name,
-        "avatar": avatar,
+        "name": USERNAME,
+        "avatar": AVATAR,
     }}
