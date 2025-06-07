@@ -35,6 +35,7 @@ async def create_knowledge(
     if not embeddings:
         return {"code": 404, "msg": "嵌入模型不存在"}
     vector_store = vector_manager.get_vector(collection.name, embeddings.init())
+    # TODO: 解析不同文件格式
     vector_store.add_texts([file.file.read()], [{"filename": file.filename}])
     return {"code": 200, "msg": "上传成功"}
 
