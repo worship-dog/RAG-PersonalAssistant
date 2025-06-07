@@ -31,6 +31,8 @@ HISTORY_EXPIRE_TIME = 60 * 60 * 24
 USERNAME = ""
 AVATAR = ""
 
+router_prefix = "/api"
+
 
 # 字典转对象
 def dict2obj(config_dict: dict):

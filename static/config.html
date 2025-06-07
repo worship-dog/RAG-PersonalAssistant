@@ -327,7 +327,7 @@
     // 加载大模型列表
     async function loadLLMs() {
       try {
-        const response = await fetch('/llm/list');
+        const response = await fetch('/api/llm/list');
         const llms = await response.json();
         const container = document.getElementById('llmList');
         container.innerHTML = '';
@@ -362,7 +362,7 @@
     // 加载嵌入模型列表
     async function loadEmbeddings() {
       try {
-        const response = await fetch('/embeddings/list');
+        const response = await fetch('/api/embeddings/list');
         const embeddings = await response.json();
         const container = document.getElementById('embeddingList');
         container.innerHTML = '';
@@ -396,7 +396,7 @@
     // 加载知识库列表
     async function loadCollections() {
       try {
-        const response = await fetch('/collection/list');
+        const response = await fetch('/api/collection/list');
         const collections = await response.json();
         const container = document.getElementById('collectionList');
         container.innerHTML = '';
@@ -434,7 +434,7 @@
       const data = Object.fromEntries(formData.entries());
 
       try {
-        const response = await fetch('/llm', {
+        const response = await fetch('/api/llm', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -460,7 +460,7 @@
       const data = Object.fromEntries(formData.entries());
 
       try {
-        const response = await fetch('/embeddings', {
+        const response = await fetch('/api/embeddings', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -489,7 +489,7 @@
       };
 
       try {
-        const response = await fetch('/collection', {
+        const response = await fetch('/api/collection', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -511,7 +511,7 @@
     // 编辑大模型
     async function editLLM(id) {
       try {
-        const response = await fetch(`/llm/list`);
+        const response = await fetch('/api/llm/list');
         const llms = await response.json();
         const llm = llms.data.find(l => l.llm_id === id);
 
@@ -553,7 +553,7 @@
     // 编辑嵌入模型
     async function editEmbedding(id) {
       try {
-        const response = await fetch(`/embeddings/list`);
+        const response = await fetch('/api/embeddings/list');
         const embeddings = await response.json();
         const embedding = embeddings.data.find(e => e.embeddings_id === id);
 
@@ -591,7 +591,7 @@
     // 编辑知识库
     async function editCollection(id) {
       try {
-        const response = await fetch(`/collection/list`);
+        const response = await fetch('/api/collection/list');
         const collections = await response.json();
         const collection = collections.data.find(c => c.collection_id === id);
 
@@ -629,13 +629,13 @@
         let requestData = {};
 
         if (data.llm_id) {
-          endpoint = '/llm';
+          endpoint = '/api/llm';
           requestData = data;
         } else if (data.embeddings_id) {
-          endpoint = '/embeddings';
+          endpoint = '/api/embeddings';
           requestData = data;
         } else if (data.collection_id) {
-          endpoint = '/collection';
+          endpoint = '/api/collection';
           requestData = {
             collection_id: data.collection_id,
             name: data.name,
@@ -655,11 +655,11 @@
           $('#editModal').modal('hide');
           document.activeElement.blur();
           form.reset();
-          if (endpoint === '/llm') {
+          if (endpoint === '/api/llm') {
             loadLLMs();
-          } else if (endpoint === '/embeddings') {
+          } else if (endpoint === '/api/embeddings') {
             loadEmbeddings();
-          } else if (endpoint === '/collection') {
+          } else if (endpoint === '/api/collection') {
             loadCollections();
           }
         }
@@ -683,7 +683,7 @@
 
       if (result.isConfirmed) {
         try {
-          const response = await fetch('/llm', {
+          const response = await fetch('/api/llm', {
             method: 'DELETE',
             headers: {
               'Content-Type': 'application/json',
@@ -707,7 +707,7 @@
     // 删除嵌入模型
     async function deleteEmbedding(id) {
       try {
-        const response = await fetch('/embeddings', {
+        const response = await fetch('/api/embeddings', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',
@@ -725,7 +725,7 @@
     // 删除知识库
     async function deleteCollection(id) {
       try {
-        const response = await fetch('/collection', {
+        const response = await fetch('/api/collection', {
           method: 'DELETE',
           headers: {
             'Content-Type': 'application/json',

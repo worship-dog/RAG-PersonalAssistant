@@ -454,7 +454,7 @@
     // 加载对话列表
     async function loadConversations() {
       try {
-        const response = await fetch('/conversation/list');
+        const response = await fetch('/api/conversation/list');
         const result = await response.json();
 
         if (result.code === 200 && result.data) {
@@ -498,7 +498,7 @@
                     cancelButtonText: '取消'
                   }).then((editResult) => {
                     if (editResult.isConfirmed) {
-                      fetch('/conversation', {
+                      fetch('/api/conversation', {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -519,7 +519,7 @@
                     cancelButtonText: '取消'
                   }).then((deleteResult) => {
                     if (deleteResult.isConfirmed) {
-                      fetch('/conversation', {
+                      fetch('/api/conversation', {
                         method: 'DELETE',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -543,7 +543,7 @@
     // 加载模型列表
     async function loadModels() {
       try {
-        const response = await fetch('/llm/list');
+        const response = await fetch('/api/llm/list');
         const result = await response.json();
 
         if (result.code === 200 && result.data) {
@@ -564,7 +564,7 @@
     // 创建新对话
     async function createNewConversation() {
       try {
-        const response = await fetch('/conversation', {
+        const response = await fetch('/api/conversation', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -631,7 +631,7 @@
     // 加载聊天历史
     async function loadChatHistory(conversationId) {
       try {
-        const response = await fetch(`/chat/list?conversation_id=${conversationId}`);
+        const response = await fetch(`/api/chat/list?conversation_id=${conversationId}`);
         const result = await response.json();
 
         chatMessages.innerHTML = '';
@@ -699,7 +699,7 @@
       }
       currentSSEController = new AbortController();
 
-      fetch('/chat/sse', {
+      fetch('/api/chat/sse', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
