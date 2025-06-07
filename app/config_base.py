@@ -28,10 +28,10 @@ redis_config = {
 HISTORY_MAX_LENGTH = 40
 HISTORY_EXPIRE_TIME = 60 * 60 * 24
 
+ROUTER_PREFIX = "/api"
+
 USERNAME = ""
 AVATAR = ""
-
-router_prefix = "/api"
 
 
 # 字典转对象

@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.config import router_prefix
+from app.config import ROUTER_PREFIX
 from app.routers import *
 from app.utils.ext import lifespan
 
@@ -25,15 +25,15 @@ app.add_middleware(
 )
 
 # 注册路由
-app.include_router(auth_router, prefix=router_prefix)
-app.include_router(chat_router, prefix=router_prefix)
-app.include_router(collection_router, prefix=router_prefix)
-app.include_router(conversation_router, prefix=router_prefix)
-app.include_router(embeddings_router, prefix=router_prefix)
-app.include_router(knowledge_router, prefix=router_prefix)
-app.include_router(llm_router, prefix=router_prefix)
-app.include_router(prompt_template_router, prefix=router_prefix)
-app.include_router(record_router, prefix=router_prefix)
+app.include_router(auth_router, prefix=ROUTER_PREFIX)
+app.include_router(chat_router, prefix=ROUTER_PREFIX)
+app.include_router(collection_router, prefix=ROUTER_PREFIX)
+app.include_router(conversation_router, prefix=ROUTER_PREFIX)
+app.include_router(embeddings_router, prefix=ROUTER_PREFIX)
+app.include_router(knowledge_router, prefix=ROUTER_PREFIX)
+app.include_router(llm_router, prefix=ROUTER_PREFIX)
+app.include_router(prompt_template_router, prefix=ROUTER_PREFIX)
+app.include_router(record_router, prefix=ROUTER_PREFIX)
 
 # 挂载静态文件目录
 app.mount("/", StaticFiles(directory="static"), name="static")
