@@ -1,3 +1,4 @@
+from loguru import logger
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
@@ -18,11 +19,13 @@ class ChatManager:
             prompt_template_id: str=None
     ):
         # 初始化大语言模型
+        logger.info("初始化大语言模型")
         llm: LLM|None = await session.get(LLM, llm_id)
         # DB模型转为Chat模型
         llm_chat = llm.init()
 
         # 初始化嵌入模型
+        logger.info("初始化嵌入模型")
         stmt = select(Embeddings).where(Embeddings.default == True)
         select_result = await session.execute(stmt)
         embeddings = select_result.scalars().first()
@@ -30,6 +33,7 @@ class ChatManager:
         embeddings = embeddings.init()
 
         # 初始化提示词模板
+        logger.info("初始化提示词模板")
         if prompt_template_id:
             prompt_template: PromptTemplate|None = await session.get(PromptTemplate, prompt_template_id)
         else:
@@ -40,6 +44,7 @@ class ChatManager:
 **上下文**  
 {context}
 """
+        logger.info("组装问答链条")
         timer.start_timer()  # 开始思考计时
         chain = chain_manager.get_chain(prompt_template, llm_chat, embeddings)
         async for token in chain.astream(

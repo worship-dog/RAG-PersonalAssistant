@@ -10,6 +10,7 @@ import asyncio
 import json
 
 from fastapi import APIRouter, Depends, Request
+from loguru import logger
 from sse_starlette import EventSourceResponse, ServerSentEvent
 
 from app.services.chat import chat_manager
@@ -38,20 +39,22 @@ async def sse_chat(request: Request):
         prompt_template_id
     :return: SSE消息流
     """
+    logger.info("建立问答SSE连接")
     data = await request.json()
+    logger.debug(f"提问参数: {data}")
 
     # 初始化事件队列
     chat_key = f"{data.get('client_id')}_{data.get('conversation_id')}"
     if chat_key not in chat_queues:
         chat_queues[chat_key] = asyncio.Queue()
-
+        logger.info("初始化问答队列")
+    await chat_queues[chat_key].put({"status": "start"})
     async def generate_answer():
         # 记录回答、思考耗时
         answer = ""
         timer_dict.setdefault(chat_key, Timer())
         think_time = 0
         chat_queue = chat_queues[chat_key]
-        await chat_queue.put({"status": "start"})
 
         async with async_db_scope() as session:
             try:

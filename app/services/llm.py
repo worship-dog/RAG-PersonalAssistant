@@ -23,7 +23,7 @@ class LLMManager:
             LLM.name,
             LLM.base_url,
             LLM.api_key
-        ).all()
+        ).order_by(LLM.name).all()
 
         rows = [{
             "llm_id": llm.id,

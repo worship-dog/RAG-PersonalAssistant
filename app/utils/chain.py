@@ -1,6 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableWithMessageHistory, RunnableParallel, RunnableLambda
+from loguru import logger
 
 from app.models.prompt_template import PromptTemplate
 from app.utils.history_message import history_message_manager
@@ -28,10 +29,11 @@ class ChainManager:
             RunnableParallel({
                 "input": lambda x:x["input"] ,
                 "context": RunnableLambda(lambda x:x["input"]) | retriever | self.format_docs,
+                # "context": RunnableLambda(lambda x: x["input"]),
                 "history": lambda x:x["history"]
             })
             | history_message_manager.limit_history_messages
-            | self.debug_params
+            # | self.debug_params
             | self.prompt_template
             | self.llm
             | StrOutputParser()
@@ -58,11 +60,13 @@ class ChainManager:
 
     @staticmethod
     def debug_params(x):
+        logger.info("整合历史对话记录")
         print(x)
         return x
 
     @staticmethod
     def format_docs(docs):
+        logger.info("整合知识库检索结果")
         doc_str = "\n\n".join([doc.page_content for doc in docs])
         return doc_str
 
