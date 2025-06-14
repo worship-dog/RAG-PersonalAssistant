@@ -6,6 +6,7 @@ langchain-core == 0.3.63
 langchain-ollama == 0.3.0
 langchain-openai == 0.3.18
 langchain-postgres == 0.0.13
+loguru==0.7.3
 psycopg-binary == 3.2.4
 psycopg2-binary == 2.9.10
 python-multipart == 0.0.20
