@@ -8,8 +8,13 @@ from app.utils.database import AsyncSession, Session
 
 
 class ChatManager:
-    @staticmethod
+    def __init__(self):
+        self.llm_dict = {}
+        self.embedding_dict = {}
+        self.prompt_dict  = {}
+
     async def astream_generate_answer(
+            self,
             timer,
             session: AsyncSession,
             conversation_id: str,
@@ -19,21 +24,26 @@ class ChatManager:
             prompt_template_id: str=None
     ):
         # 初始化大语言模型
-        logger.info("初始化大语言模型")
-        llm: LLM|None = await session.get(LLM, llm_id)
-        # DB模型转为Chat模型
-        llm_chat = llm.init()
+        if llm_id in self.llm_dict:
+            llm_chat = self.llm_dict[llm_id]
+        else:
+            llm: LLM|None = await session.get(LLM, llm_id)
+            # DB模型转为Chat模型
+            llm_chat = llm.init()
+            self.llm_dict.setdefault(llm_id, llm_chat)
 
         # 初始化嵌入模型
-        logger.info("初始化嵌入模型")
-        stmt = select(Embeddings).where(Embeddings.default == True)
-        select_result = await session.execute(stmt)
-        embeddings = select_result.scalars().first()
-        # DB模型转为Embeddings模型
-        embeddings = embeddings.init()
+        if self.embedding_dict:
+            embeddings = list(self.embedding_dict.values())[0]
+        else:
+            stmt = select(Embeddings).where(Embeddings.default == True)
+            select_result = await session.execute(stmt)
+            embeddings = select_result.scalars().first()
+            # DB模型转为Embeddings模型
+            embeddings = embeddings.init()
+            self.embedding_dict.setdefault(embeddings.model, embeddings)
 
         # 初始化提示词模板
-        logger.info("初始化提示词模板")
         if prompt_template_id:
             prompt_template: PromptTemplate|None = await session.get(PromptTemplate, prompt_template_id)
         else:
@@ -44,7 +54,6 @@ class ChatManager:
 **上下文**  
 {context}
 """
-        logger.info("组装问答链条")
         timer.start_timer()  # 开始思考计时
         chain = chain_manager.get_chain(prompt_template, llm_chat, embeddings)
         async for token in chain.astream(
