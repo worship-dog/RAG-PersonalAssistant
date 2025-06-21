@@ -10,6 +10,7 @@ from typing import Union
 
 from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
+from langchain_qwq_modification import ChatQwen
 from sqlalchemy import Column, String
 
 from app.utils.database import BaseModel
@@ -28,6 +29,7 @@ class LLM(BaseModel):
         source_model_dict = {
             "ollama": ChatOllama,
             "openai": ChatOpenAI,
+            "qwq": ChatQwen,
             "other": ChatOpenAI
         }
         chat_model = source_model_dict[str(self.source)]
