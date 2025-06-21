@@ -26,7 +26,7 @@ router = APIRouter(
 )
 
 
-@router.post("/chat/sse")
+@router.post("/v1/chat/sse")
 async def sse_chat(request: Request):
     """
     SSE 流式问答
@@ -94,6 +94,46 @@ async def sse_chat(request: Request):
         except asyncio.CancelledError:
             # 客户端断开连接时触发清理
             chat_queues.pop(chat_key, None)
+
+    return EventSourceResponse(event_generator())
+
+
+@router.post("/chat/sse")
+async def sse_chat_v2(request: Request):
+    """
+    SSE 流式问答
+    :param request: 
+        client_id, 
+        conversation_id, 
+        chat_id, 
+        question, 
+        llm_id, 
+        prompt_template_id
+    :return: SSE消息流
+    """
+    logger.info("建立问答SSE连接")
+    data = await request.json()
+    logger.debug(f"提问参数: {data}")
+
+    async def event_generator():
+        try:
+            while True:
+                # 获取事件（支持超时检测）
+                try:
+                    timer = Timer()
+                    async with async_db_scope() as session:
+                        async for chunk in chat_manager.astream_generate_answer(
+                            timer, session, **data):
+                            for think_tag in ["<think>", "</think>"]:
+                                chunk = think_tag if think_tag in chunk else chunk
+                            yield ServerSentEvent(data=chunk, event="message")
+                        yield ServerSentEvent(data="", event="finish")  # start | message | finish | close
+                        break
+                except asyncio.TimeoutError:
+                    yield {"event": "ping"}  # 发送心跳包保持连接
+        except asyncio.CancelledError:
+            # 客户端断开连接时触发清理
+            pass
 
     return EventSourceResponse(event_generator())
 

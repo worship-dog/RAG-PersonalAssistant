@@ -736,7 +736,7 @@
             // 处理缓冲区中的事件（由双换行符分隔）
             let eventEndIndex;
             while ((eventEndIndex = buffer.indexOf('\r\n\r\n')) >= 0) {
-              const eventChunk = buffer.substring(0, eventEndIndex);
+              let eventChunk = buffer.substring(0, eventEndIndex);
               buffer = buffer.substring(eventEndIndex + 2);
 
               let eventName;
@@ -758,11 +758,8 @@
                 // Typing indicator is already shown
               } else if (eventName === 'message') {
                 try {
-                  const dataPayload = JSON.parse(eventData);
-                  if (dataPayload.chunk) {
-                    currentAnswer += dataPayload.chunk;
-                    updateTypingIndicator(currentAnswer);
-                  }
+                  currentAnswer += eventData;
+                  updateTypingIndicator(currentAnswer);
                 } catch (e) {
                   console.error('Error parsing SSE message data:', e, 'Raw data:', eventData);
                 }
