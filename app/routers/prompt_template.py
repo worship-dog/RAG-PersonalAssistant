@@ -86,4 +86,5 @@ def get_template_list(session: Session = Depends(get_sync_db)):
     :param session: 数据库会话
     :return: 提示词模板列表
     """
-    return prompt_template_manager.get_templates(session)
+    data = prompt_template_manager.get_templates(session)
+    return {"code": 200, "message": "success", "data": data}

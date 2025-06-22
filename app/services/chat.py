@@ -49,9 +49,14 @@ class ChatManager:
             prompt_template = PromptTemplate()
             prompt_template.name = "默认"
             prompt_template.content = """
-你是一个智能助手，根据上下文和历史对话帮助用户解答问题
+你是一个智能助手
+"""
+        prompt_template.content += """
+请根据上下文和历史对话帮助用户解答问题
 **上下文**  
 {context}
+
+使用markdown进行格式化输出
 """
         timer.start_timer()  # 开始思考计时
         chain = chain_manager.get_chain(prompt_template, llm_chat, embeddings)

@@ -320,6 +320,18 @@
       border-radius: 12px;
     }
 
+    .prompt-template-selector {
+      border-radius: 8px;
+      padding: 8px 15px;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+      font-size: 14px;
+    }
+
+    .prompt-template-selector:focus {
+      border-color: #80bdff;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+
     @keyframes typing {
       0% {
         transform: translateY(0);
@@ -365,7 +377,17 @@
 
       <div id="chatInterface" style="display: none; height: 100%; flex-direction: column;">
         <div class="chat-header">
-          <h5 id="currentConversationTitle">对话</h5>
+          <div class="row align-items-center">
+            <div class="col">
+              <h5 id="currentConversationTitle">对话</h5>
+            </div>
+            <div class="col-md-4">
+              <select class="form-select prompt-template-selector" id="promptTemplateSelector">
+                <option value="">默认提示词</option>
+                <!-- 提示词模板选项将通过JS动态加载 -->
+              </select>
+            </div>
+          </div>
         </div>
 
         <div class="chat-messages" id="chatMessages">
@@ -425,6 +447,7 @@
       AOS.init();
       await loadConversations();
       await loadModels();
+      await loadPromptTemplates();
       setupEventListeners();
     });
 
@@ -600,7 +623,7 @@
             toast: true,
             position: 'top-end',
             showConfirmButton: false,
-            timer: 3000,
+            timer: 1000,
             timerProgressBar: true,
             didOpen: (toast) => {
               toast.addEventListener('mouseenter', Swal.stopTimer)
@@ -665,6 +688,11 @@
                 addMessage('ai', aiResponse.answer);
               });
             }
+            
+            // 根据提示词模板id，选中提示词
+            const promptTemplateSelector = document.getElementById('promptTemplateSelector');
+            promptTemplateSelector.value = chat.system ? chat.system : '';
+
           });
 
           // 滚动到底部
@@ -709,6 +737,10 @@
       isGenerating = true;
       currentAnswer = '';
 
+      // 获取当前选中的提示词模板ID
+      const promptTemplateSelector = document.getElementById('promptTemplateSelector');
+      const promptTemplateId = promptTemplateSelector.value;
+
       // Abort previous SSE connection if any
       if (currentSSEController) {
         currentSSEController.abort();
@@ -726,7 +758,7 @@
           chat_id: currentChatId, // currentChatId is null initially and not updated
           question: message,
           llm_id: modelSelector.value,
-          prompt_template_id: null
+          prompt_template_id: promptTemplateId
         }),
         signal: currentSSEController.signal
       })
@@ -971,6 +1003,30 @@
     // 滚动到底部
     function scrollToBottom() {
       chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // 加载提示词模板列表
+    async function loadPromptTemplates() {
+      try {
+        const response = await fetch('/api/prompt_template/list');
+        const result = await response.json();
+
+        if (result.code === 200 && result.data) {
+          const promptTemplateSelector = document.getElementById('promptTemplateSelector');
+          
+          // 保留默认选项
+          promptTemplateSelector.innerHTML = '<option value="">默认提示词</option>';
+
+          result.data.forEach(template => {
+            const option = document.createElement('option');
+            option.value = template.id;
+            option.textContent = template.name;
+            promptTemplateSelector.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('加载提示词模板列表失败:', error);
+      }
     }
   </script>
 

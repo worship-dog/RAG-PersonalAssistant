@@ -41,15 +41,15 @@ class PromptTemplateManager:
         session.add(template)
         session.commit()
 
-    def update_template(self, session: Session, template_id: int, **kwargs):
+    def update_template(self, session: Session, prompt_template_id: int, **kwargs):
         """
         更新提示词模板
         :param session: 数据库会话
-        :param template_id: 模板ID
+        :param prompt_template_id: 模板ID
         :param kwargs: 可更新字段(name, content)
         :return:
         """
-        template = session.query(PromptTemplate).filter(PromptTemplate.id == template_id).first()
+        template = session.query(PromptTemplate).filter(PromptTemplate.id == prompt_template_id).first()
         if template:
             for key, value in kwargs.items():
                 if hasattr(template, key):
