@@ -178,9 +178,6 @@
       <div class="tab-pane fade" id="collection" role="tabpanel">
         <div class="d-flex justify-content-between mb-3">
           <h4>知识库列表</h4>
-          <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCollectionModal">
-            <i class="bi bi-plus"></i> 添加知识库
-          </button>
         </div>
 
         <div id="collectionList">
@@ -271,6 +268,10 @@
               <label class="form-label">服务地址</label>
               <input type="text" class="form-control" name="base_url" required>
             </div>
+            <div class="mb-3 form-check">
+              <label class="form-check-label">是否默认</label>
+              <input type="checkbox" class="form-check-input" name="default">
+            </div>
           </form>
         </div>
         <div class="modal-footer">
@@ -281,29 +282,32 @@
     </div>
   </div>
 
-  <!-- 添加知识库模态框 -->
-  <div class="modal fade" id="addCollectionModal" tabindex="-1" aria-hidden="true">
+  <!-- 添加知识库文件模态框 -->
+  <div class="modal fade" id="addKnowledgeFileModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title">添加知识库</h5>
+          <h5 class="modal-title">上传知识库文件</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <form id="addCollectionForm">
+          <form id="addKnowledgeFileForm" enctype="multipart/form-data">
+            <input type="hidden" id="uploadCollectionId" name="collection_id">
             <div class="mb-3">
-              <label class="form-label">知识库名称</label>
-              <input type="text" class="form-control" name="name" required>
+              <label class="form-label">选择嵌入模型</label>
+              <select class="form-select" name="embeddings_id" required id="embeddingsSelector">
+                <!-- 嵌入模型选项将通过JS动态加载 -->
+              </select>
             </div>
             <div class="mb-3">
-              <label class="form-label">描述</label>
-              <textarea class="form-control" name="display" rows="3"></textarea>
+              <label class="form-label">上传文件</label>
+              <input type="file" class="form-control" name="file" required>
             </div>
           </form>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-          <button type="button" class="btn btn-primary" onclick="addCollection()">保存</button>
+          <button type="button" class="btn btn-primary" onclick="uploadKnowledgeFile()">上传</button>
         </div>
       </div>
     </div>
@@ -369,6 +373,24 @@
       loadLLMs();
       loadEmbeddings();
       loadCollections();
+      loadPromptTemplates();
+      
+      // 添加导航标签切换事件监听
+      document.getElementById('llm-tab').addEventListener('click', function() {
+        loadLLMs();
+      });
+      
+      document.getElementById('embedding-tab').addEventListener('click', function() {
+        loadEmbeddings();
+      });
+      
+      document.getElementById('collection-tab').addEventListener('click', function() {
+        loadCollections();
+      });
+      
+      document.getElementById('prompt-template-tab').addEventListener('click', function() {
+        loadPromptTemplates();
+      });
     });
     
     // 加载提示词模板列表
@@ -508,6 +530,203 @@
       }
     }
     
+    // 加载知识库列表
+    async function loadCollections() {
+      try {
+        const response = await fetch('/api/collection/list');
+        const collections = await response.json();
+        const container = document.getElementById('collectionList');
+        container.innerHTML = '';
+    
+        if (collections.code === 200 && collections.data) {
+          collections.data.forEach(collection => {
+            const card = document.createElement('div');
+            card.className = 'card model-card mb-4';
+            card.innerHTML = `
+              <div class="model-card-header d-flex justify-content-between">
+                <span>${collection.name}</span>
+                <div>
+                  <button class="btn btn-sm btn-outline-primary me-1" onclick="showUploadFileModal('${collection.collection_id}')">
+                    <i class="bi bi-upload"></i> 上传文件
+                  </button>
+                </div>
+              </div>
+              <div class="model-card-body">
+                <div class="mt-3">
+                  <h6>文件列表</h6>
+                  <div id="fileList-${collection.collection_id}" class="file-list">
+                    <p class="text-muted">加载中...</p>
+                  </div>
+                </div>
+              </div>
+            `;
+            container.appendChild(card);
+            
+            // 加载该知识库的文件列表
+            loadKnowledgeFiles(collection.collection_id);
+          });
+        }
+      } catch (error) {
+        console.error('加载知识库列表失败:', error);
+      }
+    }
+    
+    // 加载知识库文件列表
+    async function loadKnowledgeFiles(collectionId) {
+      try {
+        const response = await fetch(`/api/knowledge/list?collection_id=${collectionId}`);
+        const result = await response.json();
+        const fileListContainer = document.getElementById(`fileList-${collectionId}`);
+        
+        if (result.code === 200 && result.data) {
+          if (result.data.length === 0) {
+            fileListContainer.innerHTML = '<p class="text-muted">暂无文件</p>';
+            return;
+          }
+          
+          const fileTable = document.createElement('table');
+          fileTable.className = 'table table-sm table-hover';
+          fileTable.innerHTML = `
+            <thead>
+              <tr>
+                <th>文件名</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${result.data.map(fileName => `
+                <tr>
+                  <td>${fileName}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteKnowledgeFile('${fileName}', '${collectionId}')">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          `;
+          
+          fileListContainer.innerHTML = '';
+          fileListContainer.appendChild(fileTable);
+        } else {
+          fileListContainer.innerHTML = `<p class="text-muted">${result.msg || '暂无文件'}</p>`;
+        }
+      } catch (error) {
+        console.error('加载知识库文件列表失败:', error);
+        const fileListContainer = document.getElementById(`fileList-${collectionId}`);
+        fileListContainer.innerHTML = '<p class="text-danger">加载文件列表失败</p>';
+      }
+    }
+    
+    // 显示上传文件模态框
+    function showUploadFileModal(collectionId) {
+      document.getElementById('uploadCollectionId').value = collectionId;
+      
+      // 加载嵌入模型选项
+      loadEmbeddingsForSelector();
+      
+      $('#addKnowledgeFileModal').modal('show');
+    }
+    
+    // 加载嵌入模型选择器
+    async function loadEmbeddingsForSelector() {
+      try {
+        const response = await fetch('/api/embeddings/list');
+        const embeddings = await response.json();
+        const selector = document.getElementById('embeddingsSelector');
+        selector.innerHTML = '';
+        
+        if (embeddings.code === 200 && embeddings.data) {
+          embeddings.data.forEach(embedding => {
+            const option = document.createElement('option');
+            option.value = embedding.embeddings_id;
+            option.textContent = `${embedding.name} (${embedding.source})`;
+            selector.appendChild(option);
+          });
+        }
+      } catch (error) {
+        console.error('加载嵌入模型选项失败:', error);
+      }
+    }
+    
+    // 上传知识库文件
+    async function uploadKnowledgeFile() {
+      const form = document.getElementById('addKnowledgeFileForm');
+      const formData = new FormData(form);
+      
+      try {
+        const response = await fetch('/api/knowledge', {
+          method: 'POST',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          $('#addKnowledgeFileModal').modal('hide');
+          document.activeElement.blur();
+          form.reset();
+          
+          // 重新加载文件列表
+          loadKnowledgeFiles(formData.get('collection_id'));
+          
+          Swal.fire({
+            icon: 'success',
+            title: '上传成功',
+            text: result.msg || '文件已成功上传到知识库'
+          });
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: '上传失败',
+            text: result.msg || '文件上传失败，请重试'
+          });
+        }
+      } catch (error) {
+        console.error('上传知识库文件失败:', error);
+        Swal.fire({
+          icon: 'error',
+          title: '上传失败',
+          text: '文件上传过程中发生错误，请重试'
+        });
+      }
+    }
+    
+    // 删除知识库文件
+    async function deleteKnowledgeFile(fileName, collectionId) {
+      const result = await Swal.fire({
+        title: '确认删除',
+        text: `您确定要删除文件 ${fileName} 吗？`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: '确定删除',
+        cancelButtonText: '取消'
+      });
+    
+      if (result.isConfirmed) {
+        try {
+          const response = await fetch(`/api/knowledge?file_name=${encodeURIComponent(fileName)}&collection_id=${collectionId}`, {
+            method: 'DELETE'
+          });
+    
+          const data = await response.json();
+    
+          if (response.ok) {
+            // 重新加载文件列表
+            loadKnowledgeFiles(collectionId);
+            Swal.fire('已删除!', data.msg || '文件已成功删除', 'success');
+          } else {
+            Swal.fire('错误', data.msg || '删除失败', 'error');
+          }
+        } catch (error) {
+          console.error('删除知识库文件失败:', error);
+          Swal.fire('错误', '删除失败: ' + error.message, 'error');
+        }
+      }
+    }
     // 加载大模型列表
     async function loadLLMs() {
       try {
@@ -577,40 +796,6 @@
       }
     }
 
-    // 加载知识库列表
-    async function loadCollections() {
-      try {
-        const response = await fetch('/api/collection/list');
-        const collections = await response.json();
-        const container = document.getElementById('collectionList');
-        container.innerHTML = '';
-
-        collections.data.forEach(collection => {
-          const card = document.createElement('div');
-          card.className = 'card model-card';
-          card.innerHTML = `
-                        <div class="model-card-header d-flex justify-content-between">
-                            <span>${collection.name}</span>
-                            <div>
-                                <button class="btn btn-sm btn-outline-primary me-1" onclick="editCollection('${collection.collection_id}')">
-                                    <i class="bi bi-pencil"></i>
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteCollection('${collection.collection_id}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="model-card-body">
-                            <p><strong>描述:</strong> ${collection.display || '无'}</p>
-                        </div>
-                    `;
-          container.appendChild(card);
-        });
-      } catch (error) {
-        console.error('加载知识库列表失败:', error);
-      }
-    }
-
     // 添加大模型
     async function addLLM() {
       const form = document.getElementById('addLLMForm');
@@ -641,7 +826,8 @@
     async function addEmbedding() {
       const form = document.getElementById('addEmbeddingForm');
       const formData = new FormData(form);
-      const data = Object.fromEntries(formData.entries());
+      let data = Object.fromEntries(formData.entries());
+      data.default = formData.has('default');
 
       try {
         const response = await fetch('/api/embeddings', {
@@ -660,35 +846,6 @@
         }
       } catch (error) {
         console.error('添加嵌入模型失败:', error);
-      }
-    }
-
-    // 添加知识库
-    async function addCollection() {
-      const form = document.getElementById('addCollectionForm');
-      const formData = new FormData(form);
-      const data = {
-        name: formData.get('name'),
-        display: formData.get('display')
-      };
-
-      try {
-        const response = await fetch('/api/collection', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        });
-
-        if (response.ok) {
-          $('#addCollectionModal').modal('hide');
-          document.activeElement.blur();
-          form.reset();
-          loadCollections();
-        }
-      } catch (error) {
-        console.error('添加知识库失败:', error);
       }
     }
 
@@ -763,6 +920,10 @@
                                 <label class="form-label">服务地址</label>
                                 <input type="text" class="form-control" name="base_url" value="${embedding.base_url}" required>
                             </div>
+                            <div class="mb-3 form-check">
+                                <label class="form-check-label">是否默认</label>
+                                <input type="checkbox" class="form-check-input" name="default" ${embedding.default ? 'checked' : ''}>
+                            </div>
                         </form>
                     `;
 
@@ -770,36 +931,6 @@
         }
       } catch (error) {
         console.error('获取嵌入模型详情失败:', error);
-      }
-    }
-
-    // 编辑知识库
-    async function editCollection(id) {
-      try {
-        const response = await fetch('/api/collection/list');
-        const collections = await response.json();
-        const collection = collections.data.find(c => c.collection_id === id);
-
-        if (collection) {
-          document.getElementById('editModalTitle').textContent = '编辑知识库';
-          document.getElementById('editModalBody').innerHTML = `
-                        <form id="editForm">
-                            <input type="hidden" name="collection_id" value="${collection.collection_id}">
-                            <div class="mb-3">
-                                <label class="form-label">知识库名称</label>
-                                <input type="text" class="form-control" name="name" value="${collection.name}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">描述</label>
-                                <textarea class="form-control" name="display" rows="3">${collection.display || ''}</textarea>
-                            </div>
-                        </form>
-                    `;
-
-          $('#editModal').modal('show');
-        }
-      } catch (error) {
-        console.error('获取知识库详情失败:', error);
       }
     }
 
@@ -818,14 +949,12 @@
           requestData = data;
         } else if (data.embeddings_id) {
           endpoint = '/api/embeddings';
+          // 处理复选框值，确保 default 总是被发送到后端
+          data.default = formData.has('default');
           requestData = data;
-        } else if (data.collection_id) {
-          endpoint = '/api/collection';
-          requestData = {
-            collection_id: data.collection_id,
-            name: data.name,
-            display: data.display || ''
-          };
+        } else if (data.prompt_template_id) {
+          endpoint = '/api/prompt_template';
+          requestData = data;
         }
 
         const response = await fetch(endpoint, {
@@ -844,9 +973,11 @@
             loadLLMs();
           } else if (endpoint === '/api/embeddings') {
             loadEmbeddings();
-          } else if (endpoint === '/api/collection') {
-            loadCollections();
+          } else if (endpoint === '/api/prompt_template') {
+            loadPromptTemplates();
           }
+        } else {
+          const errorData = await response.json();
         }
       } catch (error) {
         console.error('保存编辑失败:', error);
@@ -907,24 +1038,7 @@
       }
     }
 
-    // 删除知识库
-    async function deleteCollection(id) {
-      try {
-        const response = await fetch('/api/collection', {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ collection_id: id })
-        });
-        if (response.ok) {
-          loadCollections();
-        }
-      } catch (error) {
-        console.error('删除知识库失败:', error);
-      }
-    }
-  </script>
+    </script>
 </body>
 
 </html>

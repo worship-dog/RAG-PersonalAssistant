@@ -23,6 +23,7 @@ class EmbeddingCreateRequest(BaseModel):
     source: str
     name: str
     base_url: str
+    default: bool
 
 
 class EmbeddingDeleteRequest(BaseModel):

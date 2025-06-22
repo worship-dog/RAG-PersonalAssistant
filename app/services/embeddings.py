@@ -6,6 +6,7 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 
+from sqlalchemy.engine import default
 from app.models.embeddings import Embeddings
 from app.utils.database import Session
 
@@ -56,19 +57,21 @@ class EmbeddingsManager:
             Embeddings.id,
             Embeddings.source,
             Embeddings.name,
-            Embeddings.base_url
+            Embeddings.base_url,
+            Embeddings.default
         ).all()
 
         rows = [{
             "embeddings_id": embeddings.id,
             "source": embeddings.source,
             "name": embeddings.name,
-            "base_url": embeddings.base_url
+            "base_url": embeddings.base_url,
+            "default": embeddings.default
         } for embeddings in embeddings_list]
         return rows
 
     @staticmethod
-    def add_embeddings(session: Session, source: str, name: str, base_url: str):
+    def add_embeddings(session: Session, source: str, name: str, base_url: str, default: bool):
         """
         新增嵌入模型到数据库
 
@@ -76,14 +79,19 @@ class EmbeddingsManager:
         :param source: 模型来源(ollama/openai/other)
         :param name: 模型名称
         :param base_url: 服务地址
+        :param default: 是否为默认模型
         :return:
         """
         embeddings = Embeddings(
             source=source,
             name=name,
-            base_url=base_url
+            base_url=base_url,
+            default=default
         )
         session.add(embeddings)
+
+        # TODO: 修改默认模型
+
         session.commit()
 
     @staticmethod
