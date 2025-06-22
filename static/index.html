@@ -525,7 +525,11 @@
                         body: JSON.stringify({
                           conversation_id: conversation.id
                         })
-                      }).then(() => loadConversations());
+                      }).then(() => {
+                        // 清空聊天记录
+                        clearChatInterface();
+                        loadConversations();
+                      });
                     }
                   });
                 }
@@ -538,6 +542,18 @@
       } catch (error) {
         console.error('加载对话列表失败:', error);
       }
+    }
+
+    // 清空右侧聊天记录并重置状态
+    function clearChatInterface() {
+      chatMessages.innerHTML = ''; // 清空聊天内容
+      currentConversationId = null; // 重置当前对话ID
+      currentChatId = null; // 重置当前聊天ID
+      currentConversationTitle.textContent = '对话'; // 重置标题
+
+      // 显示空状态界面
+      emptyState.style.display = 'flex';
+      chatInterface.style.display = 'none';
     }
 
     // 加载模型列表
