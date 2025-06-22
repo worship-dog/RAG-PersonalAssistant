@@ -118,7 +118,9 @@ async def sse_chat_v2(request: Request):
     async def event_generator():
         try:
             while True:
-                # 获取事件（支持超时检测）
+                # 获取回答（支持超时检测）
+                answer = ""
+                think_time = 0
                 try:
                     timer = Timer()
                     async with async_db_scope() as session:
@@ -126,8 +128,14 @@ async def sse_chat_v2(request: Request):
                             timer, session, **data):
                             for think_tag in ["<think>", "</think>"]:
                                 chunk = think_tag if think_tag in chunk else chunk
+                                if timer.end_timer(think_tag):
+                                    think_time = timer.elapsed
+                            answer += chunk
                             yield ServerSentEvent(data=chunk, event="message")
                         yield ServerSentEvent(data="", event="finish")  # start | message | finish | close
+
+                        # 保存回答
+                        await chat_manager.save_chat(session, answer, think_time, **data)
                         break
                 except asyncio.TimeoutError:
                     yield {"event": "ping"}  # 发送心跳包保持连接
