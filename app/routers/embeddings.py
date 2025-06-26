@@ -8,6 +8,7 @@ Email: worship76@foxmail.com>
 
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from typing import Optional
 
 from app.services import embeddings_manager
 from app.utils.database import get_sync_db, Session
@@ -30,8 +31,11 @@ class EmbeddingDeleteRequest(BaseModel):
     embeddings_id: str
 
 
-class EmbeddingUpdateRequest(EmbeddingCreateRequest, EmbeddingDeleteRequest):
-    pass
+class EmbeddingUpdateRequest(EmbeddingDeleteRequest):
+    source: Optional[str] = None
+    name: Optional[str] = None
+    base_url: Optional[str] = None
+    default: Optional[bool] = None
 
 
 @router.post("/embeddings")

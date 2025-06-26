@@ -11,6 +11,7 @@ import json
 
 from fastapi import APIRouter, Depends, Request
 from loguru import logger
+from sqlalchemy import exc
 from sse_starlette import EventSourceResponse, ServerSentEvent
 
 from app.services.chat import chat_manager
@@ -124,19 +125,27 @@ async def sse_chat_v2(request: Request):
                 try:
                     timer = Timer()
                     async with async_db_scope() as session:
-                        async for chunk in chat_manager.astream_generate_answer(
-                            timer, session, **data):
-                            for think_tag in ["<think>", "</think>"]:
-                                chunk = think_tag if think_tag in chunk else chunk
-                                if timer.end_timer(think_tag):
-                                    think_time = timer.elapsed
-                            answer += chunk
-                            yield ServerSentEvent(data=json.dumps({"data": chunk}), event="message")
-                        yield ServerSentEvent(data="", event="finish")  # start | message | finish | close
+                        try:
+                            async for chunk in chat_manager.astream_generate_answer(
+                                timer, session, **data):
+                                for think_tag in ["<think>", "</think>"]:
+                                    chunk = think_tag if think_tag in chunk else chunk
+                                    if timer.end_timer(think_tag):
+                                        think_time = timer.elapsed
+                                answer += chunk
+                                yield ServerSentEvent(data=json.dumps({"data": chunk}), event="message")
+                            yield ServerSentEvent(data="", event="finish")  # start | message | finish | close
+                        except ValueError as e:
+                            logger.error(e)
+                            yield ServerSentEvent(data=str(e), event="error")
+                        except Exception as e:
+                            logger.error(e)
+                            yield ServerSentEvent(data="", event="unknown")
+                        finally:
+                            # 保存回答
+                            await chat_manager.save_chat(session, answer, think_time, **data)
+                            break
 
-                        # 保存回答
-                        await chat_manager.save_chat(session, answer, think_time, **data)
-                        break
                 except asyncio.TimeoutError:
                     yield {"event": "ping"}  # 发送心跳包保持连接
         except asyncio.CancelledError:

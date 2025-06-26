@@ -38,6 +38,8 @@ class ChatManager:
             stmt = select(Embeddings).where(Embeddings.default == True)
             select_result = await session.execute(stmt)
             embeddings = select_result.scalars().first()
+            if not embeddings:
+                raise ValueError("请添加默认嵌入模型")
             # DB模型转为Embeddings模型
             embeddings = embeddings.init()
             self.embedding_dict.setdefault(embeddings.model, embeddings)

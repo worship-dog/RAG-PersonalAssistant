@@ -727,6 +727,7 @@
         }
       }
     }
+    
     // 加载大模型列表
     async function loadLLMs() {
       try {
@@ -787,6 +788,8 @@
                         </div>
                         <div class="model-card-body">
                             <p><strong>服务地址:</strong> ${embedding.base_url}</p>
+                            <input type="checkbox" class="form-check-input" name="default" ${embedding.default ? 'checked' : ''} onclick="quickEditEmbedding('${embedding.embeddings_id}', this.checked)">
+                            <label class="form-check-label">是否默认</label>
                         </div>
                     `;
           container.appendChild(card);
@@ -931,6 +934,25 @@
         }
       } catch (error) {
         console.error('获取嵌入模型详情失败:', error);
+      }
+    }
+
+    // 快速编辑嵌入模型
+    async function quickEditEmbedding(id, checked) { 
+      try {
+        requestData = {embeddings_id: id, default: checked};
+        const response = await fetch('/api/embeddings', {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(requestData)
+        });
+        if (response.ok) {
+          loadEmbeddings();
+        } else {
+          const errorData = await response.json();
+        }
+      } catch (error) {
+        console.error('保存编辑失败:', error);
       }
     }
 

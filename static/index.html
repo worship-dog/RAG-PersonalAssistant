@@ -823,8 +823,13 @@
               } else if (eventName === 'error') {
                 isGenerating = false;
                 removeTypingIndicator();
-                addMessage('ai', '连接聊天服务失败，请重试。');
+                addMessage('ai', eventData);
                 scrollToBottom();
+              } else if (eventName === 'unknown') {
+                isGenerating = false;
+                removeTypingIndicator();
+                addMessage('ai', '连接聊天服务失败，请重试。');
+                scrollToBottom(); 
               }
             }
           }
@@ -991,7 +996,6 @@
           indicator.innerHTML = marked.parse(content);
         }
       }
-      scrollToBottom();
     }
 
     // 移除正在输入指示器

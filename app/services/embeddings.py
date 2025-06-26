@@ -82,6 +82,12 @@ class EmbeddingsManager:
         :param default: 是否为默认模型
         :return:
         """
+        if default:
+            # 检查是否存在其他默认嵌入模型
+            if default_embeddings := EmbeddingsManager.get_default_embeddings(session):
+                # 如果存在，将其设为非默认
+                default_embeddings.default = False
+        
         embeddings = Embeddings(
             source=source,
             name=name,
@@ -89,9 +95,6 @@ class EmbeddingsManager:
             default=default
         )
         session.add(embeddings)
-
-        # TODO: 修改默认模型
-
         session.commit()
 
     @staticmethod
@@ -104,6 +107,13 @@ class EmbeddingsManager:
         :param kwargs: 可更新字段(source, name, base_url)
         :return:
         """
+        if kwargs.get("default"):
+            # 检查是否存在默认嵌入模型
+            if default_embeddings := EmbeddingsManager.get_default_embeddings(session):
+                # 如果存在且并非当前模型，将其设为非默认
+                if default_embeddings.id != embeddings_id:
+                    default_embeddings.default = False
+
         embeddings = session.query(Embeddings).filter_by(id=embeddings_id).first()
         if embeddings:
             for key, value in kwargs.items():
