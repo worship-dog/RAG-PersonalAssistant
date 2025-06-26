@@ -131,7 +131,7 @@ async def sse_chat_v2(request: Request):
                                 if timer.end_timer(think_tag):
                                     think_time = timer.elapsed
                             answer += chunk
-                            yield ServerSentEvent(data=chunk, event="message")
+                            yield ServerSentEvent(data=json.dumps({"data": chunk}), event="message")
                         yield ServerSentEvent(data="", event="finish")  # start | message | finish | close
 
                         # 保存回答

@@ -806,7 +806,9 @@
                 // Typing indicator is already shown
               } else if (eventName === 'message') {
                 try {
-                  currentAnswer += eventData;
+                  // 解析JSON格式的数据
+                  const parsedData = JSON.parse(eventData);
+                  currentAnswer += parsedData.data;
                   updateTypingIndicator(currentAnswer);
                 } catch (e) {
                   console.error('Error parsing SSE message data:', e, 'Raw data:', eventData);
