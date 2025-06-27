@@ -5,6 +5,7 @@
 Author: worship-dog
 Email: worship76@foxmail.com>
 """
+from sqlalchemy import desc
 
 from app.models.prompt_template import PromptTemplate
 from app.utils.database import Session
@@ -21,7 +22,7 @@ class PromptTemplateManager:
             PromptTemplate.id,
             PromptTemplate.name,
             PromptTemplate.content
-        ).all()
+        ).order_by(desc(PromptTemplate.update_time)).all()
 
         return [{
             "id": template.id,

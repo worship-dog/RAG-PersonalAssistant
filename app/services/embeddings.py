@@ -6,7 +6,7 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 
-from sqlalchemy.engine import default
+from sqlalchemy import desc
 from app.models.embeddings import Embeddings
 from app.utils.database import Session
 
@@ -59,6 +59,10 @@ class EmbeddingsManager:
             Embeddings.name,
             Embeddings.base_url,
             Embeddings.default
+        ).order_by(
+            desc(Embeddings.default), 
+            desc(Embeddings.update_time), 
+            Embeddings.name
         ).all()
 
         rows = [{

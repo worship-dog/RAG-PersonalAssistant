@@ -5,6 +5,7 @@
 Author: worship-dog
 Email: worship76@foxmail.com>
 """
+from sqlalchemy import desc
 
 from app.models import LLM
 from app.utils.database import Session
@@ -23,7 +24,7 @@ class LLMManager:
             LLM.name,
             LLM.base_url,
             LLM.api_key
-        ).order_by(LLM.name).all()
+        ).order_by(desc(LLM.update_time), LLM.name).all()
 
         rows = [{
             "llm_id": llm.id,
