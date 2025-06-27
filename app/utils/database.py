@@ -10,6 +10,7 @@ from datetime import datetime
 import uuid
 
 from fastapi import HTTPException
+from loguru import logger
 from sqlalchemy import create_engine, Column, String, TIMESTAMP
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -60,6 +61,7 @@ def db_scope():
         yield db
         db.commit()  # 提交事务
     except Exception as e:
+        logger.error(e)
         db.rollback()  # 回滚
         raise HTTPException(status_code=500, detail=e.args[0])
     finally:
@@ -90,6 +92,7 @@ async def async_db_scope():
         yield db
         await db.commit()  # 提交事务
     except Exception as e:
+        logger.error(e)
         await db.rollback()  # 回滚
         raise HTTPException(status_code=500, detail=e)
     finally:
