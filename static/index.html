@@ -135,17 +135,26 @@
 
     .message-human {
       margin-left: auto;
-      max-width: max-content;
       width: fit-content;
       max-width: 60%;
     }
 
     .message-ai {
       margin-right: auto;
-      max-width: max-content;
       width: fit-content;
       max-width: 80%;
       margin-bottom: 10px;
+    }
+
+    .message-thinking {
+      margin-right: auto;
+      width: fit-content;
+      max-width: 80%;
+      margin-bottom: 10px;
+    }
+
+    .message-separator {
+      max-width: 80%;
     }
 
     .message-content {
@@ -264,14 +273,15 @@
     .typing-indicator {
       display: inline-block;
       padding: 15px 20px;
-      background-color: #f1f3f5;
       border-radius: 12px;
-      margin-bottom: 20px;
       box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       transition: box-shadow 0.3s ease;
       font-size: 15px;
       line-height: 1.5;
       font-weight: 450;
+      width: fit-content;
+      max-width: 80%;
+      margin-bottom: 10px;
     }
 
     .typing-indicator:hover {
@@ -869,7 +879,7 @@
 
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'btn btn-sm btn-link thinking-toggle';
-            toggleBtn.innerHTML = '<i class="bi bi-chevron-down"></i> 思考过程';
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i> 思考过程';
             toggleBtn.addEventListener('click', function () {
               const contentDiv = this.nextElementSibling;
               const icon = this.querySelector('i');
@@ -957,44 +967,41 @@
     function updateTypingIndicator(content) {
       const indicator = document.getElementById('typingIndicator');
       if (indicator) {
+        let displayContent = '';
+        
         // 检查是否包含思考内容
         if (content.includes('<think>')) {
-          // 提取思考内容
           const thinkRegex = /<think>([\s\S]*?)<\/think>/;
           const thinkMatch = content.match(thinkRegex);
-
+          
           if (thinkMatch) {
-            // 提取思考内容和回答内容
             const thinkingContent = thinkMatch[1].trim();
-            // 移除思考内容标签，获取回答内容
             const answerContent = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
-
-            // 构建显示内容
-            let displayContent = '';
-
+            
+            // 添加思考内容
             if (thinkingContent) {
-              displayContent += '<div class="thinking-label" style="font-weight: 400; font-size: 16px;">思考过程</div>';
-              displayContent += '<div class="message-content" style="background-color: #e9ecef; color: #495057; border-left: 3px solid #6c757d; font-style: italic; ">';
+              displayContent += '<div class="thinking-content">';
               displayContent += marked.parse(thinkingContent);
               displayContent += '</div>';
-
+              
+              // 添加分隔线
               if (answerContent) {
                 displayContent += '<hr class="message-separator">';
-                displayContent += '<div class="message-content">';
-                displayContent += marked.parse(answerContent);
-                displayContent += '</div>';
               }
-            } else {
-              displayContent = marked.parse(content);
             }
-
-            indicator.innerHTML = displayContent;
+            
+            // 添加回答内容
+            if (answerContent) {
+              displayContent += marked.parse(answerContent);
+            }
           } else {
-            indicator.innerHTML = marked.parse(content);
+            displayContent = marked.parse(content);
           }
         } else {
-          indicator.innerHTML = marked.parse(content);
+          displayContent = marked.parse(content);
         }
+        
+        indicator.innerHTML = displayContent;
       }
     }
 

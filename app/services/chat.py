@@ -53,7 +53,11 @@ class ChatManager:
             prompt_template.content = """
 你是一个智能助手
 """
-        prompt_template.content += """
+        prompt_template_info = {
+            "name": prompt_template.name,
+            "content": prompt_template.content
+        }
+        prompt_template_info["content"] += """
 请根据上下文和历史对话帮助用户解答问题
 **上下文**  
 {context}
@@ -61,7 +65,7 @@ class ChatManager:
 使用markdown进行格式化输出
 """
         timer.start_timer()  # 开始思考计时
-        chain = chain_manager.get_chain(prompt_template, llm_chat, embeddings)
+        chain = chain_manager.get_chain(prompt_template_info, llm_chat, embeddings)
         async for token in chain.astream(
             input={"input": question},
             config={"configurable": {"session_id": conversation_id}}

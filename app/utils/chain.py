@@ -11,12 +11,12 @@ class ChainManager:
     def __init__(self):
         self.chain_dict = {}
 
-    def _create_chain(self, prompt_template: PromptTemplate, llm, chain_key, embeddings):
+    def _create_chain(self, prompt_template_info, llm, chain_key, embeddings):
         vector_store = vector_manager.get_vector("默认知识库", embeddings, async_mode=True)
         retriever = vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 6})
 
         chat_prompt_template = ChatPromptTemplate.from_messages([
-            ("system", prompt_template.content),
+            ("system", prompt_template_info["content"]),
             MessagesPlaceholder(variable_name="history"),
             ("human", "{input}")
         ])
@@ -45,12 +45,12 @@ class ChainManager:
 
         return chain_with_history
 
-    def get_chain(self, prompt_template: PromptTemplate, llm, embeddings):
+    def get_chain(self, prompt_template_info, llm, embeddings):
         llm_name = llm.model if hasattr(llm, "model") else llm.model_name
-        chain_key = f"{llm_name}_{prompt_template.name}"
+        chain_key = f"{llm_name}_{prompt_template_info['name']}"
         chain = self.chain_dict.get(chain_key)
         if chain is None:
-            chain = self._create_chain(prompt_template, llm, chain_key, embeddings)
+            chain = self._create_chain(prompt_template_info, llm, chain_key, embeddings)
         return chain
 
     @staticmethod
