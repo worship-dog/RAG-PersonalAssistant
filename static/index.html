@@ -5,27 +5,30 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI助手</title>
-  <!-- jQuery库 -->
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <!-- Bootstrap主题 -->
   <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.0/dist/lux/bootstrap.min.css" rel="stylesheet">
-  <!-- Bootstrap图标 -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-  <!-- Font Awesome图标 -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <!-- AOS动画 -->
-  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-  <!-- SweetAlert2 -->
-  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-  <!-- 自定义样式 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
+
   <style>
+    :root {
+      --primary-color: #007bff;
+      --light-bg: #f5f7fa;
+      --border-color: #dee2e6;
+      --text-dark: #212529;
+      --text-medium: #495057;
+      --shadow-light: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
     body {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
       height: 100vh;
       overflow: hidden;
-      background-color: #f5f7fa;
+      background-color: var(--light-bg);
     }
 
     .chat-container {
@@ -36,11 +39,11 @@
     .sidebar {
       width: 280px;
       background-color: #ffffff;
-      border-right: 1px solid #dee2e6;
+      border-right: 1px solid var(--border-color);
       display: flex;
       flex-direction: column;
       height: 100%;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-light);
     }
 
     .chat-area {
@@ -48,7 +51,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      background-color: #f5f7fa;
+      background-color: var(--light-bg);
     }
 
     .conversation-list {
@@ -67,6 +70,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       border: 1px solid transparent;
+      color: var(--text-dark);
     }
 
     .conversation-item:hover {
@@ -78,14 +82,7 @@
     .conversation-item.active {
       background-color: #e9ecef;
       font-weight: 500;
-      border-left: 3px solid #007bff;
-    }
-
-    .conversation-item,
-    .chat-header h5,
-    .empty-state {
-      font-size: 16px;
-      font-weight: 400;
+      border-left: 3px solid var(--primary-color);
     }
 
     .more-btn {
@@ -113,9 +110,9 @@
 
     .chat-header {
       padding: 18px 25px;
-      border-bottom: 1px solid #dee2e6;
+      border-bottom: 1px solid var(--border-color);
       background-color: #ffffff;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      box-shadow: var(--shadow-light);
     }
 
     .chat-messages {
@@ -146,7 +143,7 @@
       margin-bottom: 10px;
     }
 
-    .message-thinking {
+    .message-thinking { 
       margin-right: auto;
       width: fit-content;
       max-width: 80%;
@@ -172,32 +169,20 @@
     }
 
     .message-human .message-content {
-      background-color: #007bff;
-      color: black;
+      background-color: var(--primary-color);
+      color: white;
       border-top-right-radius: 10px;
     }
 
     .message-ai .message-content {
       background-color: #f8f9fa;
-      color: #343a40;
-    }
-
-    .empty-state {
-      color: #495057;
-    }
-
-    .conversation-item {
-      color: #212529;
-    }
-
-    .chat-header h5 {
-      color: #212529;
+      color: var(--text-dark);
     }
 
     .chat-input-container {
       padding: 20px 25px;
       background-color: #ffffff;
-      border-top: 1px solid #dee2e6;
+      border-top: 1px solid var(--border-color);
       box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
     }
 
@@ -249,7 +234,7 @@
       align-items: center;
       justify-content: center;
       height: 100%;
-      color: #6c757d;
+      color: var(--text-medium);
       padding: 30px;
       text-align: center;
     }
@@ -257,7 +242,7 @@
     .empty-state i {
       font-size: 60px;
       margin-bottom: 20px;
-      color: #007bff;
+      color: var(--primary-color);
     }
 
     .empty-state h4 {
@@ -267,7 +252,7 @@
 
     .sidebar-footer {
       padding: 20px;
-      border-top: 1px solid #dee2e6;
+      border-top: 1px solid var(--border-color);
     }
 
     .typing-indicator {
@@ -311,19 +296,19 @@
       padding: 0;
       font-size: 16px;
       font-weight: 400;
-      color: #495057;
+      color: var(--text-medium);
       text-decoration: none;
     }
 
     .thinking-toggle:hover {
-      color: #007bff;
+      color: var(--primary-color);
       text-decoration: none;
     }
 
     .thinking-content {
       margin-top: 10px;
       background-color: #e9ecef;
-      color: #495057;
+      color: var(--text-medium);
       border-left: 3px solid #6c757d;
       font-style: italic;
       padding: 15px 20px;
@@ -346,11 +331,9 @@
       0% {
         transform: translateY(0);
       }
-
       50% {
         transform: translateY(-5px);
       }
-
       100% {
         transform: translateY(0);
       }
@@ -425,19 +408,10 @@
     </div>
   </div>
 
-  <!-- 添加第三方JS库 -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <!-- AOS动画 -->
-  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
-  <!-- SweetAlert2 -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-
   <script>
     // 全局变量
     let currentConversationId = null;
-    let currentChatId = null;
-    let currentSSEController = null; // Manages the SSE connection AbortController
+    let currentSSEController = null;
     let isGenerating = false;
     let currentAnswer = '';
 
@@ -454,7 +428,6 @@
 
     // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', async () => {
-      AOS.init();
       await loadConversations();
       await loadModels();
       await loadPromptTemplates();
@@ -497,6 +470,7 @@
             const item = document.createElement('div');
             item.className = 'conversation-item d-flex justify-content-between align-items-center';
             item.dataset.id = conversation.id;
+            item.dataset.name = conversation.name;
 
             const itemText = document.createElement('span');
             itemText.textContent = conversation.name;
@@ -506,67 +480,14 @@
             moreBtn.className = 'btn btn-sm btn-outline-secondary more-btn';
             moreBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
             item.appendChild(moreBtn);
+            
             item.addEventListener('click', () => {
               selectConversation(conversation.id, conversation.name);
             });
+            
             moreBtn.addEventListener('click', (e) => {
               e.stopPropagation();
-
-              Swal.fire({
-                title: '操作选项',
-                showDenyButton: true,
-                showCancelButton: true,
-                confirmButtonText: '编辑',
-                denyButtonText: '删除',
-                cancelButtonText: '取消'
-              }).then((result) => {
-                if (result.isConfirmed) {
-                  // 编辑操作
-                  Swal.fire({
-                    title: '编辑对话名称',
-                    input: 'text',
-                    inputValue: conversation.name,
-                    showCancelButton: true,
-                    confirmButtonText: '保存',
-                    cancelButtonText: '取消'
-                  }).then((editResult) => {
-                    if (editResult.isConfirmed) {
-                      fetch('/api/conversation', {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          conversation_id: conversation.id,
-                          name: editResult.value
-                        })
-                      }).then(() => loadConversations());
-                    }
-                  });
-                } else if (result.isDenied) {
-                  // 删除操作
-                  Swal.fire({
-                    title: '确认删除？',
-                    text: '此操作无法撤销',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: '删除',
-                    cancelButtonText: '取消'
-                  }).then((deleteResult) => {
-                    if (deleteResult.isConfirmed) {
-                      fetch('/api/conversation', {
-                        method: 'DELETE',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          conversation_id: conversation.id
-                        })
-                      }).then(() => {
-                        // 清空聊天记录
-                        clearChatInterface();
-                        loadConversations();
-                      });
-                    }
-                  });
-                }
-              });
+              showConversationOptions(conversation);
             });
 
             conversationList.appendChild(item);
@@ -574,17 +495,81 @@
         }
       } catch (error) {
         console.error('加载对话列表失败:', error);
+        showError('加载对话列表失败');
       }
     }
 
-    // 清空右侧聊天记录并重置状态
-    function clearChatInterface() {
-      chatMessages.innerHTML = ''; // 清空聊天内容
-      currentConversationId = null; // 重置当前对话ID
-      currentChatId = null; // 重置当前聊天ID
-      currentConversationTitle.textContent = '对话'; // 重置标题
+    // 显示对话选项
+    function showConversationOptions(conversation) {
+      Swal.fire({
+        title: '操作选项',
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: '编辑',
+        denyButtonText: '删除',
+        cancelButtonText: '取消'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          editConversation(conversation);
+        } else if (result.isDenied) {
+          deleteConversation(conversation);
+        }
+      });
+    }
 
-      // 显示空状态界面
+    // 编辑对话
+    function editConversation(conversation) {
+      Swal.fire({
+        title: '编辑对话名称',
+        input: 'text',
+        inputValue: conversation.name,
+        showCancelButton: true,
+        confirmButtonText: '保存',
+        cancelButtonText: '取消'
+      }).then((editResult) => {
+        if (editResult.isConfirmed) {
+          fetch('/api/conversation', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversation_id: conversation.id,
+              name: editResult.value
+            })
+          }).then(() => loadConversations());
+        }
+      });
+    }
+
+    // 删除对话
+    function deleteConversation(conversation) {
+      Swal.fire({
+        title: '确认删除？',
+        text: '此操作无法撤销',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: '删除',
+        cancelButtonText: '取消'
+      }).then((deleteResult) => {
+        if (deleteResult.isConfirmed) {
+          fetch('/api/conversation', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              conversation_id: conversation.id
+            })
+          }).then(() => {
+            clearChatInterface();
+            loadConversations();
+          });
+        }
+      });
+    }
+
+    // 清空聊天记录并重置状态
+    function clearChatInterface() {
+      chatMessages.innerHTML = '';
+      currentConversationId = null;
+      currentConversationTitle.textContent = '对话';
       emptyState.style.display = 'flex';
       chatInterface.style.display = 'none';
     }
@@ -597,7 +582,6 @@
 
         if (result.code === 200 && result.data) {
           modelSelector.innerHTML = '';
-
           result.data.forEach(model => {
             const option = document.createElement('option');
             option.value = model.llm_id;
@@ -607,6 +591,7 @@
         }
       } catch (error) {
         console.error('加载模型列表失败:', error);
+        showError('加载模型列表失败');
       }
     }
 
@@ -615,9 +600,7 @@
       try {
         const response = await fetch('/api/conversation', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             name: '新对话 ' + new Date().toLocaleTimeString()
           })
@@ -628,31 +611,11 @@
         if (result.code === 200 && result.data) {
           await loadConversations();
           selectConversation(result.data.conversation_id, '新对话');
-          // 显示成功提示
-          const toast = Swal.mixin({
-            toast: true,
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 1000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-              toast.addEventListener('mouseenter', Swal.stopTimer)
-              toast.addEventListener('mouseleave', Swal.resumeTimer)
-            }
-          });
-
-          toast.fire({
-            icon: 'success',
-            title: '新对话已创建'
-          });
+          showToast('新对话已创建', 'success');
         }
       } catch (error) {
         console.error('创建新对话失败:', error);
-        Swal.fire({
-          icon: 'error',
-          title: '创建失败',
-          text: '无法创建新对话，请重试',
-        });
+        showError('无法创建新对话');
       }
     }
 
@@ -668,12 +631,8 @@
 
       currentConversationId = conversationId;
       currentConversationTitle.textContent = conversationName;
-
-      // 显示聊天界面
       emptyState.style.display = 'none';
       chatInterface.style.display = 'flex';
-
-      // 加载聊天记录
       await loadChatHistory(conversationId);
     }
 
@@ -687,42 +646,28 @@
 
         if (result.code === 200 && result.data) {
           result.data.forEach(chat => {
-            // 添加用户消息
-            if (chat.human) {
-              addMessage('human', chat.human);
-            }
-
-            // 添加AI回复
+            if (chat.human) addMessage('human', chat.human);
             if (chat.ai && chat.ai.length > 0) {
-              chat.ai.forEach(aiResponse => {
-                addMessage('ai', aiResponse.answer);
-              });
+              chat.ai.forEach(aiResponse => addMessage('ai', aiResponse.answer));
             }
-            
-            // 根据提示词模板id，选中提示词
             const promptTemplateSelector = document.getElementById('promptTemplateSelector');
             promptTemplateSelector.value = chat.system ? chat.system : '';
-
           });
-
-          // 滚动到底部
           scrollToBottom();
         }
       } catch (error) {
         console.error('加载聊天历史失败:', error);
+        showError('加载聊天历史失败');
       }
     }
 
     // 发送消息
     function sendMessage() {
       const message = messageInput.value.trim();
-
       if (!message || isGenerating) return;
 
       if (!currentConversationId) {
-        createNewConversation().then(() => {
-          sendMessageToServer(message);
-        });
+        createNewConversation().then(() => sendMessageToServer(message));
       } else {
         sendMessageToServer(message);
       }
@@ -730,20 +675,12 @@
 
     // 向服务器发送消息
     function sendMessageToServer(message) {
-      // 添加用户消息到聊天窗口
+      // 添加用户消息
       addMessage('human', message);
-
-      // 清空输入框
       messageInput.value = '';
       messageInput.style.height = 'auto';
-
-      // 滚动到底部
       scrollToBottom();
-
-      // 显示正在输入指示器
       showTypingIndicator();
-
-      // 设置生成状态
       isGenerating = true;
       currentAnswer = '';
 
@@ -751,10 +688,8 @@
       const promptTemplateSelector = document.getElementById('promptTemplateSelector');
       const promptTemplateId = promptTemplateSelector.value;
 
-      // Abort previous SSE connection if any
-      if (currentSSEController) {
-        currentSSEController.abort();
-      }
+      // 终止之前的SSE连接
+      if (currentSSEController) currentSSEController.abort();
       currentSSEController = new AbortController();
 
       fetch('/api/chat/sse', {
@@ -765,122 +700,125 @@
         },
         body: JSON.stringify({
           conversation_id: currentConversationId,
-          chat_id: currentChatId, // currentChatId is null initially and not updated
           question: message,
           llm_id: modelSelector.value,
-          prompt_template_id: promptTemplateId
+          prompt_template_id: promptTemplateId,
+          chat_id: ""
         }),
         signal: currentSSEController.signal
       })
-        .then(async response => {
-          if (!response.ok) {
-            return response.text().then(text => {
-              throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
-            });
-          }
-          if (!response.body) {
-            throw new Error('Response body is null');
-          }
+        .then(processSSEResponse)
+        .catch(handleSSEError);
+    }
 
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder('utf-8');
-          let buffer = '';
+    // 处理SSE响应
+    async function processSSEResponse(response) {
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, body: ${text}`);
+      }
+      if (!response.body) throw new Error('Response body is null');
 
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
 
-            // 处理缓冲区中的事件（由双换行符分隔）
-            let eventEndIndex;
-            while ((eventEndIndex = buffer.indexOf('\r\n\r\n')) >= 0) {
-              let eventChunk = buffer.substring(0, eventEndIndex);
-              buffer = buffer.substring(eventEndIndex + 2);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
 
-              let eventName;
-              let eventData;
-              eventChunk.split('\n').forEach(line => {
-                const colonIndex = line.indexOf(':');
-                if (colonIndex <= 0) return;
-                const field = line.substring(0, colonIndex).trim();
-                const value = line.substring(colonIndex + 1).trim();
+        let eventEndIndex;
+        while ((eventEndIndex = buffer.indexOf('\r\n\r\n')) >= 0) {
+          const eventChunk = buffer.substring(0, eventEndIndex);
+          buffer = buffer.substring(eventEndIndex + 4);
 
-                if (field === 'event') {
-                  eventName = value;
-                } else if (field === 'data') {
-                  eventData = value;
-                }
-              });
+          let eventName, eventData;
+          eventChunk.split('\n').forEach(line => {
+            const colonIndex = line.indexOf(':');
+            if (colonIndex <= 0) return;
+            const field = line.substring(0, colonIndex).trim();
+            const value = line.substring(colonIndex + 1).trim();
 
-              if (eventName === 'start') {
-                // Typing indicator is already shown
-              } else if (eventName === 'message') {
-                try {
-                  // 解析JSON格式的数据
-                  const parsedData = JSON.parse(eventData);
-                  currentAnswer += parsedData.data;
-                  updateTypingIndicator(currentAnswer);
-                } catch (e) {
-                  console.error('Error parsing SSE message data:', e, 'Raw data:', eventData);
-                }
-              } else if (eventName === 'finish') {
-                isGenerating = false;
-                removeTypingIndicator();
-                if (currentAnswer) {
-                  addMessage('ai', currentAnswer);
-                }
-                scrollToBottom();
-              } else if (eventName === 'error') {
-                isGenerating = false;
-                removeTypingIndicator();
-                addMessage('ai', eventData);
-                scrollToBottom();
-              } else if (eventName === 'unknown') {
-                isGenerating = false;
-                removeTypingIndicator();
-                addMessage('ai', '连接聊天服务失败，请重试。');
-                scrollToBottom(); 
+            if (field === 'event') eventName = value;
+            else if (field === 'data') eventData = value;
+          });
+
+          switch (eventName) {
+            case 'start':
+              // 处理开始事件
+              break;
+            case 'message':
+              try {
+                const parsedData = JSON.parse(eventData);
+                currentAnswer += parsedData.data;
+                updateTypingIndicator(currentAnswer);
+              } catch (e) {
+                console.error('Error parsing SSE message data:', e);
               }
-            }
+              break;
+            case 'finish':
+              isGenerating = false;
+              removeTypingIndicator();
+              if (currentAnswer) addMessage('ai', currentAnswer);
+              scrollToBottom();
+              break;
+            case 'error':
+              isGenerating = false;
+              removeTypingIndicator();
+              addMessage('ai', eventData);
+              scrollToBottom();
+              break;
+            case 'unknown':
+              isGenerating = false;
+              removeTypingIndicator();
+              addMessage('ai', "聊天服务异常，请稍后再试。");
+              scrollToBottom();
+              break;
+            default:
+              console.warn('Unknown SSE event:', eventName);
           }
-        })
-        .catch(error => {
-          console.error('SSE Fetch Error:', error);
-          if (error.name === 'AbortError') {
-            console.log('SSE Fetch aborted.'); // Expected when starting a new message
-            // UI cleanup for aborted state is handled by the new message's showTypingIndicator etc.
-          } else {
-            isGenerating = false;
-            removeTypingIndicator();
-            addMessage('ai', '连接聊天服务失败，请重试。');
-            scrollToBottom();
-          }
-        });
+        }
+      }
+    }
+
+    // 处理SSE错误
+    function handleSSEError(error) {
+      console.error('SSE Fetch Error:', error);
+      if (error.name !== 'AbortError') {
+        isGenerating = false;
+        removeTypingIndicator();
+        addMessage('ai', '连接聊天服务失败，请重试。');
+        scrollToBottom();
+      }
     }
 
     // 添加消息到聊天窗口
     function addMessage(type, content) {
-      // 如果是AI消息，检查是否包含思考内容
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message message-${type}`;
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+      
+      // 处理包含思考内容的消息
       if (type === 'ai' && content.includes('<think>')) {
-        // 提取思考内容
         const thinkRegex = /<think>([\s\S]*?)<\/think>/;
         const thinkMatch = content.match(thinkRegex);
-
+        
         if (thinkMatch) {
-          // 提取思考内容和回答内容
           const thinkingContent = thinkMatch[1].trim();
-          // 移除思考内容标签，获取回答内容
           const answerContent = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
-
+          
           // 创建思考内容元素
           if (thinkingContent) {
             const thinkingDiv = document.createElement('div');
             thinkingDiv.className = 'message message-thinking';
-
+            
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'btn btn-sm btn-link thinking-toggle';
             toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i> 思考过程';
-            toggleBtn.addEventListener('click', function () {
+            toggleBtn.addEventListener('click', function() {
               const contentDiv = this.nextElementSibling;
               const icon = this.querySelector('i');
               if (contentDiv.style.display === 'none') {
@@ -906,50 +844,21 @@
             separator.className = 'message-separator';
             chatMessages.appendChild(separator);
           }
-
-          // 创建回答内容元素
+          
+          // 添加回答内容
           if (answerContent) {
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message message-${type}`;
-
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
             contentDiv.innerHTML = marked.parse(answerContent);
-
-            messageDiv.appendChild(contentDiv);
-            chatMessages.appendChild(messageDiv);
           }
         } else {
-          // 没有找到思考标签，按原样显示
-          const messageDiv = document.createElement('div');
-          messageDiv.className = `message message-${type}`;
-
-          const contentDiv = document.createElement('div');
-          contentDiv.className = 'message-content';
           contentDiv.innerHTML = marked.parse(content);
-
-          messageDiv.appendChild(contentDiv);
-          chatMessages.appendChild(messageDiv);
         }
       } else {
-        // 非AI消息或不包含思考内容的AI消息，按原样显示
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message message-${type}`;
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-
-        if (type === 'ai') {
-          // 使用marked.js渲染Markdown
-          contentDiv.innerHTML = marked.parse(content);
-        } else {
-          contentDiv.textContent = content;
-        }
-
-        messageDiv.appendChild(contentDiv);
-        chatMessages.appendChild(messageDiv);
+        // 普通消息
+        contentDiv.innerHTML = type === 'ai' ? marked.parse(content) : content;
       }
-
+      
+      messageDiv.appendChild(contentDiv);
+      chatMessages.appendChild(messageDiv);
       scrollToBottom();
     }
 
@@ -986,7 +895,7 @@
               
               // 添加分隔线
               if (answerContent) {
-                displayContent += '<hr class="message-separator">';
+                displayContent += '<hr>';
               }
             }
             
@@ -1008,9 +917,7 @@
     // 移除正在输入指示器
     function removeTypingIndicator() {
       const indicator = document.getElementById('typingIndicator');
-      if (indicator) {
-        indicator.remove();
-      }
+      if (indicator) indicator.remove();
     }
 
     // 滚动到底部
@@ -1025,24 +932,46 @@
         const result = await response.json();
 
         if (result.code === 200 && result.data) {
-          const promptTemplateSelector = document.getElementById('promptTemplateSelector');
+          const selector = document.getElementById('promptTemplateSelector');
+          selector.innerHTML = '<option value="">默认提示词</option>';
           
-          // 保留默认选项
-          promptTemplateSelector.innerHTML = '<option value="">默认提示词</option>';
-
           result.data.forEach(template => {
             const option = document.createElement('option');
             option.value = template.id;
             option.textContent = template.name;
-            promptTemplateSelector.appendChild(option);
+            selector.appendChild(option);
           });
         }
       } catch (error) {
         console.error('加载提示词模板列表失败:', error);
+        showError('加载提示词模板列表失败');
       }
     }
+
+    // 显示错误消息
+    function showError(message) {
+      Swal.fire({
+        icon: 'error',
+        title: '操作失败',
+        text: message,
+      });
+    }
+
+    // 显示成功提示
+    function showToast(message, icon = 'success') {
+      const toast = Swal.mixin({
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 1000,
+        timerProgressBar: true,
+        didOpen: (toast) => {
+          toast.addEventListener('mouseenter', Swal.stopTimer);
+          toast.addEventListener('mouseleave', Swal.resumeTimer);
+        }
+      });
+      toast.fire({ icon, title: message });
+    }
   </script>
-
 </body>
-
 </html>
