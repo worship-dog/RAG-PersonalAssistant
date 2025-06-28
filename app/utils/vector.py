@@ -8,13 +8,13 @@ class VectorManager:
     def __init__(self):
         self.vector_dict = {}
 
-    def get_vector(self, collection_name: str, embeddings: OllamaEmbeddings, async_mode:bool=False) -> PGVector:
-        vector_key = f"{collection_name}_{embeddings.model}_{str(async_mode)}"
+    def get_vector(self, embeddings: OllamaEmbeddings, async_mode:bool=False) -> PGVector:
+        vector_key = f"{embeddings.model}_{str(async_mode)}"
         vector_store = self.vector_dict.get(vector_key)
         if vector_store is None:
             vector_store = PGVector(
                 connection=ASYNC_SQLALCHEMY_DATABASE_URL if async_mode else SQLALCHEMY_DATABASE_URL,
-                collection_name=collection_name,
+                collection_name="默认知识库",
                 embeddings=embeddings,
                 create_extension=False,
                 async_mode=async_mode

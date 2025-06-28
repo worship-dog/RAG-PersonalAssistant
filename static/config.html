@@ -341,7 +341,6 @@
         </div>
         <div class="modal-body">
           <form id="addKnowledgeFileForm" enctype="multipart/form-data">
-            <input type="hidden" id="uploadCollectionId" name="collection_id">
             <div class="mb-3">
               <label class="form-label">选择嵌入模型</label>
               <select class="form-select" name="embeddings_id" required id="embeddingsSelector">
@@ -539,37 +538,30 @@
     // 加载知识库列表
     async function loadCollections() {
       try {
-        const response = await fetch('/api/collection/list');
-        const { data } = await response.json();
         const container = document.getElementById('collectionList');
         container.innerHTML = '';
         
-        if (data && data.length > 0) {
-          data.forEach(collection => {
-            const card = document.createElement('div');
-            card.className = 'col-12';
-            card.innerHTML = `
-              <div class="model-card">
-                <div class="model-card-header">
-                  <span>${collection.name}</span>
-                  <button class="btn btn-primary" onclick="showUploadFileModal('${collection.collection_id}')">
-                    <i class="bi bi-upload me-1"></i>上传文件
-                  </button>
+        const card = document.createElement('div');
+        card.className = 'col-12';
+        card.innerHTML = `
+            <div class="model-card">
+            <div class="model-card-header">
+                <span>默认知识库</span>
+                <button class="btn btn-primary" onclick="showUploadFileModal()">
+                <i class="bi bi-upload me-1"></i>上传文件
+                </button>
+            </div>
+            <div class="model-card-body">
+                <h6>文件列表</h6>
+                <div id="fileList" class="file-list">
+                <p class="text-muted">加载中...</p>
                 </div>
-                <div class="model-card-body">
-                  <h6>文件列表</h6>
-                  <div id="fileList-${collection.collection_id}" class="file-list">
-                    <p class="text-muted">加载中...</p>
-                  </div>
-                </div>
-              </div>
-            `;
-            container.appendChild(card);
-            loadKnowledgeFiles(collection.collection_id);
-          });
-        } else {
-          container.innerHTML = createEmptyState('bi-book', '暂无知识库');
-        }
+            </div>
+            </div>
+        `;
+        container.appendChild(card);
+        loadKnowledgeFiles();
+        
       } catch (error) {
         console.error('加载知识库列表失败:', error);
         showError('加载知识库列表失败');
@@ -925,11 +917,11 @@
     }
     
     // 加载知识库文件列表
-    async function loadKnowledgeFiles(collectionId) {
+    async function loadKnowledgeFiles() {
       try {
         const response = await fetch(`/api/knowledge/list`);
         const { data } = await response.json();
-        const fileListContainer = document.getElementById(`fileList-${collectionId}`);
+        const fileListContainer = document.getElementById(`fileList`);
         
         if (data && data.length > 0) {
           fileListContainer.innerHTML = `
@@ -949,7 +941,7 @@
                     <td>${fileInfo.tag_list}</td>
                     <td>${fileInfo.modify_time}</td>
                     <td>
-                      <button class="btn btn-sm btn-outline-danger" onclick="deleteKnowledgeFile('${fileInfo.filename}', '${collectionId}')">
+                      <button class="btn btn-sm btn-outline-danger" onclick="deleteKnowledgeFile('${fileInfo.filename}')">
                         <i class="bi bi-trash"></i>
                       </button>
                     </td>
@@ -968,8 +960,7 @@
     }
     
     // 显示上传文件模态框
-    function showUploadFileModal(collectionId) {
-      document.getElementById('uploadCollectionId').value = collectionId;
+    function showUploadFileModal() {
       loadEmbeddingsForSelector();
       $('#addKnowledgeFileModal').modal('show');
     }
@@ -1011,7 +1002,7 @@
         if (response.ok) {
           $('#addKnowledgeFileModal').modal('hide');
           form.reset();
-          loadKnowledgeFiles(formData.get('collection_id'));
+          loadKnowledgeFiles();
           showSuccess(result.msg || '文件上传成功');
         } else {
           showError(result.msg || '文件上传失败');
@@ -1023,7 +1014,7 @@
     }
     
     // 删除知识库文件
-    async function deleteKnowledgeFile(fileName, collectionId) {
+    async function deleteKnowledgeFile(fileName) {
       const result = await Swal.fire({
         title: '确认删除',
         text: `您确定要删除文件 ${fileName} 吗？`,
@@ -1042,7 +1033,7 @@
           const data = await response.json();
           
           if (response.ok) {
-            loadKnowledgeFiles(collectionId);
+            loadKnowledgeFiles();
             showSuccess('文件已删除');
           } else {
             showError(data.msg || '删除失败');

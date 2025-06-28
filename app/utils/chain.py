@@ -12,7 +12,7 @@ class ChainManager:
         self.chain_dict = {}
 
     def _create_chain(self, prompt_template_info, llm, chain_key, embeddings):
-        vector_store = vector_manager.get_vector("默认知识库", embeddings, async_mode=True)
+        vector_store = vector_manager.get_vector(embeddings, async_mode=True)
         retriever = vector_store.as_retriever(
             search_type="similarity_score_threshold", 
             search_kwargs={"k": 6, "score_threshold": MIN_SIMILARITY}

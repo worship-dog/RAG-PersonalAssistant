@@ -1,4 +1,3 @@
-from app.services.collection import collection_manager
 from app.services.conversation import conversation_manager
 from app.services.embeddings import embeddings_manager
 from app.services.llm import llm_manager
