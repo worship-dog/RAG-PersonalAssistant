@@ -58,11 +58,9 @@ class ChatManager:
             "content": prompt_template.content
         }
         prompt_template_info["content"] += """
-请根据上下文和历史对话帮助用户解答问题
+请结合上下文和历史对话进行回答
 **上下文**  
 {context}
-
-使用markdown进行格式化输出
 """
         timer.start_timer()  # 开始思考计时
         chain = chain_manager.get_chain(prompt_template_info, llm_chat, embeddings)

@@ -1,3 +1,6 @@
+import json
+import hashlib
+
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
 from langchain_core.runnables import RunnableWithMessageHistory, RunnableParallel, RunnableLambda
@@ -51,7 +54,11 @@ class ChainManager:
 
     def get_chain(self, prompt_template_info, llm, embeddings):
         llm_name = llm.model if hasattr(llm, "model") else llm.model_name
-        chain_key = f"{llm_name}_{prompt_template_info['name']}"
+        # 生成提示词模板的唯一指纹
+        template_fingerprint = hashlib.md5(
+            json.dumps(prompt_template_info, sort_keys=True).encode('utf-8')
+        ).hexdigest()[:8]  # 取8位短哈希
+        chain_key = f"{llm_name}_{prompt_template_info['name']}_{template_fingerprint}"
         chain = self.chain_dict.get(chain_key)
         if chain is None:
             chain = self._create_chain(prompt_template_info, llm, chain_key, embeddings)
