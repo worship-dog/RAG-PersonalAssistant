@@ -60,10 +60,14 @@ def db_scope():
         db.begin()  # 启动事务
         yield db
         db.commit()  # 提交事务
+    except HTTPException as e:
+        logger.error(e)
+        db.rollback()  # 回滚
+        raise e
     except Exception as e:
         logger.error(e)
         db.rollback()  # 回滚
-        raise HTTPException(status_code=500, detail=e.args[0])
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         db.close()
 
@@ -91,6 +95,10 @@ async def async_db_scope():
         await db.begin()  # 开始事务
         yield db
         await db.commit()  # 提交事务
+    except HTTPException as e:
+        await db.rollback()  # 回滚
+        logger.error(e)
+        raise e
     except Exception as e:
         logger.error(e)
         await db.rollback()  # 回滚

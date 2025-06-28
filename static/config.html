@@ -353,7 +353,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">文件标签</label>
-              <input name="tags" class="form-control" placeholder="请输入文件标签，多个标签使用英文逗号间隔"/>
+              <input class="form-control" name="tags" placeholder="请输入文件标签，多个标签使用英文逗号间隔"/>
             </div>
           </form>
         </div>
@@ -405,6 +405,40 @@
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
           <button type="button" class="btn btn-primary" onclick="saveEdit()">保存</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="editKnowledgeFileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">编辑知识库文件</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="editKnowledgeFileForm" enctype="multipart/form-data">
+            <div class="mb-3">
+              <label class="form-label">选择嵌入模型</label>
+              <select class="form-select" name="embeddings_id" required id="editEmbeddingsSelector">
+                <!-- 嵌入模型选项将通过JS动态加载 -->
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">上传文件</label>
+              <input type="file" class="form-control" name="file">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">文件标签</label>
+              <input class="form-control" name="tags" placeholder="请输入文件标签，多个标签使用英文逗号间隔"/>
+            </div>
+            <input type="hidden" name="filename" id="filename">
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+          <button type="button" class="btn btn-primary" onclick="updateKnowledgeFile()">保存</button>
         </div>
       </div>
     </div>
@@ -945,6 +979,9 @@
                     <td>${fileInfo.tag_list}</td>
                     <td>${fileInfo.modify_time}</td>
                     <td>
+                      <button class="btn btn-sm btn-outline-primary" onclick="editKnowledgeFile('${fileInfo.filename}')">
+                        <i class="bi bi-pencil"></i>
+                      </button>
                       <button class="btn btn-sm btn-outline-danger" onclick="deleteKnowledgeFile('${fileInfo.filename}')">
                         <i class="bi bi-trash"></i>
                       </button>
@@ -970,11 +1007,11 @@
     }
     
     // 加载嵌入模型选项
-    async function loadEmbeddingsForSelector() {
+    async function loadEmbeddingsForSelector(selectorId = 'embeddingsSelector') {
       try {
         const response = await fetch('/api/embeddings/list');
         const { data } = await response.json();
-        const selector = document.getElementById('embeddingsSelector');
+        const selector = document.getElementById(selectorId);
         selector.innerHTML = '';
         
         if (data && data.length > 0) {
@@ -1009,11 +1046,67 @@
           loadKnowledgeFiles();
           showSuccess(result.msg || '文件上传成功');
         } else {
-          showError(result.msg || '文件上传失败');
+          showError(result.detail || '文件上传失败');
         }
       } catch (error) {
         console.error('上传知识库文件失败:', error);
         showError('上传失败');
+      }
+    }
+    
+    // 编辑知识库文件
+    async function editKnowledgeFile(fileName) {
+      try {
+        const response = await fetch(`/api/knowledge/list`);
+        const { data } = await response.json();
+        const fileInfo = data.find(f => f.filename === fileName);
+        
+        if (fileInfo) {
+          document.getElementById('editKnowledgeFileModal').querySelector('[name="filename"]').value = fileInfo.filename;
+          document.getElementById('editKnowledgeFileModal').querySelector('[name="tags"]').value = fileInfo.tag_list.join(',');
+          
+          // 加载嵌入模型列表并设置选中项
+          await loadEmbeddingsForSelector('editEmbeddingsSelector');
+          const selector = document.getElementById('editEmbeddingsSelector');
+          for (let i = 0; i < selector.options.length; i++) {
+            if (selector.options[i].value === fileInfo.embeddings_id) {
+              selector.selectedIndex = i;
+              break;
+            }
+          }
+          
+          $('#editKnowledgeFileModal').modal('show');
+        }
+      } catch (error) {
+        console.error('获取知识库文件详情失败:', error);
+        showError('获取详情失败');
+      }
+    }
+    
+    // 更新知识库文件
+    async function updateKnowledgeFile() {
+      const form = document.getElementById('editKnowledgeFileForm');
+      const formData = new FormData(form);
+      
+      try {
+        const response = await fetch('/api/knowledge', {
+          method: 'PUT',
+          body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          $('#editKnowledgeFileModal').modal('hide');
+          form.reset();
+          loadKnowledgeFiles();
+          showSuccess(result.msg || '文件更新成功');
+        } else {
+          showError(result.detail || '文件更新失败');
+        }
+      } catch (error) {
+        console.error('更新知识库文件失败:', error);
+        showError('更新失败');
       }
     }
     
