@@ -36,7 +36,7 @@ async def create_knowledge(
     vector_store.add_texts([file.file.read()], [{
         "filename": file.filename,
         "modify_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "tag_list": tags.split(",") if tags else [],
+        "tag_list": list(set(tags.split(","))) if tags else [],
         "index": 0
     }])
     return {"code": 200, "msg": "success"}
