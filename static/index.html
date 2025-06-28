@@ -535,7 +535,10 @@
               conversation_id: conversation.id,
               name: editResult.value
             })
-          }).then(() => loadConversations());
+          }).then(() => {
+            loadConversations();
+            selectConversation(conversation.id, editResult.value);
+        });
         }
       });
     }
