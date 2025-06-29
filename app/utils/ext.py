@@ -1,5 +1,7 @@
 # -*- coding: UTF-8 -*-
 """
+FastAPI应用生命周期
+
 Author: worship-dog
 Email: worship76@foxmail.com>
 """

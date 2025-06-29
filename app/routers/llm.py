@@ -81,5 +81,5 @@ def get_llm_list(session: Session = Depends(get_sync_db)):
     :param session: 数据库会话
     :return: 大语言模型列表
     """
-    llm_list = llm_manager.get_llms(session)
+    llm_list = llm_manager.get_llm_list(session)
     return {"code": 200, "message": "success", "data": llm_list}

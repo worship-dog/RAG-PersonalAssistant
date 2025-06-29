@@ -1,3 +1,5 @@
+<!-- 系统配置页面 -->
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -10,7 +12,7 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.all.min.js"></script>
-  
+
   <style>
     :root {
       --primary-color: #007bff;
@@ -19,17 +21,17 @@
       --border-radius: 8px;
       --transition: all 0.3s ease;
     }
-    
+
     body {
       background-color: #f5f7fa;
       padding-bottom: 2rem;
     }
-    
+
     .container-fluid {
       max-width: 1400px;
       padding: 20px;
     }
-    
+
     .page-header {
       background: linear-gradient(135deg, #f8f9fa, #e9ecef);
       border-radius: var(--border-radius);
@@ -37,20 +39,20 @@
       margin-bottom: 1.5rem;
       box-shadow: var(--card-shadow);
     }
-    
+
     .nav-tabs .nav-link {
       font-weight: 500;
       padding: 12px 24px;
       border-radius: var(--border-radius) var(--border-radius) 0 0;
       transition: var(--transition);
     }
-    
+
     .nav-tabs .nav-link.active {
       background-color: #fff;
       border-color: #dee2e6 #dee2e6 #fff;
       box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
     }
-    
+
     .tab-content {
       padding: 25px;
       border: 1px solid #dee2e6;
@@ -58,7 +60,7 @@
       background: #fff;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     }
-    
+
     .section-header {
       display: flex;
       justify-content: space-between;
@@ -67,7 +69,7 @@
       padding-bottom: 0.75rem;
       border-bottom: 1px solid #eee;
     }
-    
+
     .model-card {
       margin-bottom: 20px;
       border-radius: var(--border-radius);
@@ -76,12 +78,12 @@
       overflow: hidden;
       border: none;
     }
-    
+
     .model-card:hover {
       transform: translateY(-5px);
       box-shadow: var(--card-hover-shadow);
     }
-    
+
     .model-card-header {
       font-weight: bold;
       background-color: #f8f9fa;
@@ -93,20 +95,20 @@
       justify-content: space-between;
       align-items: center;
     }
-    
+
     .model-card-body {
       padding: 20px;
       background-color: #ffffff;
       font-size: 1rem;
       font-weight: 400;
     }
-    
+
     .btn-icon {
       padding: 6px 10px;
       border-radius: 5px;
       margin-left: 5px;
     }
-    
+
     .file-list {
       max-height: 300px;
       overflow-y: auto;
@@ -114,7 +116,7 @@
       border-radius: var(--border-radius);
       padding: 10px;
     }
-    
+
     .template-content {
       max-height: 200px;
       overflow-y: auto;
@@ -124,36 +126,36 @@
       font-size: 0.9rem;
       white-space: pre-wrap;
     }
-    
+
     .empty-state {
       text-align: center;
       padding: 40px 20px;
       color: #6c757d;
     }
-    
+
     .empty-state i {
       font-size: 3rem;
       margin-bottom: 1rem;
       color: #adb5bd;
     }
-    
+
     .action-buttons {
       display: flex;
       gap: 8px;
     }
-    
+
     @media (max-width: 768px) {
       .nav-tabs .nav-link {
         padding: 10px 15px;
         font-size: 0.9rem;
       }
-      
+
       .section-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
       }
-      
+
       .model-card-header {
         flex-direction: column;
         align-items: flex-start;
@@ -176,22 +178,26 @@
 
     <ul class="nav nav-tabs" id="configTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="llm-tab" data-bs-toggle="tab" data-bs-target="#llm" type="button" role="tab">
+        <button class="nav-link active" id="llm-tab" data-bs-toggle="tab" data-bs-target="#llm" type="button"
+          role="tab">
           <i class="bi bi-cpu me-2"></i>大模型
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="embedding-tab" data-bs-toggle="tab" data-bs-target="#embedding" type="button" role="tab">
+        <button class="nav-link" id="embedding-tab" data-bs-toggle="tab" data-bs-target="#embedding" type="button"
+          role="tab">
           <i class="bi bi-diagram-3 me-2"></i>嵌入模型
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="prompt-template-tab" data-bs-toggle="tab" data-bs-target="#prompt-template" type="button" role="tab">
+        <button class="nav-link" id="prompt-template-tab" data-bs-toggle="tab" data-bs-target="#prompt-template"
+          type="button" role="tab">
           <i class="bi bi-chat-quote me-2"></i>提示词模板
         </button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="collection-tab" data-bs-toggle="tab" data-bs-target="#collection" type="button" role="tab">
+        <button class="nav-link" id="collection-tab" data-bs-toggle="tab" data-bs-target="#collection" type="button"
+          role="tab">
           <i class="bi bi-book me-2"></i>知识库
         </button>
       </li>
@@ -234,7 +240,7 @@
             <i class="bi bi-plus-lg me-2"></i>添加模板
           </button>
         </div>
-      
+
         <div id="promptTemplateList" class="row">
           <!-- 提示词模板列表将通过JS动态加载 -->
         </div>
@@ -353,7 +359,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">文件标签</label>
-              <input class="form-control" name="tags" placeholder="请输入文件标签，多个标签使用英文逗号间隔"/>
+              <input class="form-control" name="tags" placeholder="请输入文件标签，多个标签使用英文逗号间隔" />
             </div>
           </form>
         </div>
@@ -431,7 +437,7 @@
             </div>
             <div class="mb-3">
               <label class="form-label">文件标签</label>
-              <input class="form-control" name="tags" placeholder="请输入文件标签，多个标签使用英文逗号间隔"/>
+              <input class="form-control" name="tags" placeholder="请输入文件标签，多个标签使用英文逗号间隔" />
             </div>
             <input type="hidden" name="filename" id="filename">
           </form>
@@ -446,12 +452,12 @@
 
   <script>
     // 页面加载时初始化
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       loadLLMs();
       loadEmbeddings();
       loadCollections();
       loadPromptTemplates();
-      
+
       // 标签切换事件
       const tabs = ['llm', 'embedding', 'collection', 'prompt-template'];
       const tabMappings = {
@@ -466,16 +472,16 @@
         });
       });
     });
-    
+
     // 通用函数
     function showError(message) {
       Swal.fire('错误', message, 'error');
     }
-    
+
     function showSuccess(message) {
       Swal.fire('成功', message, 'success');
     }
-    
+
     // 加载大模型列表
     async function loadLLMs() {
       try {
@@ -483,7 +489,7 @@
         const { data } = await response.json();
         const container = document.getElementById('llmList');
         container.innerHTML = '';
-        
+
         if (data && data.length > 0) {
           data.forEach(llm => {
             const card = createCard(
@@ -506,7 +512,7 @@
         showError('加载大模型列表失败');
       }
     }
-    
+
     // 加载嵌入模型列表
     async function loadEmbeddings() {
       try {
@@ -514,7 +520,7 @@
         const { data } = await response.json();
         const container = document.getElementById('embeddingList');
         container.innerHTML = '';
-        
+
         if (data && data.length > 0) {
           data.forEach(embedding => {
             const card = createCard(
@@ -542,7 +548,7 @@
         showError('加载嵌入模型列表失败');
       }
     }
-    
+
     // 加载提示词模板列表
     async function loadPromptTemplates() {
       try {
@@ -550,7 +556,7 @@
         const { data } = await response.json();
         const container = document.getElementById('promptTemplateList');
         container.innerHTML = '';
-        
+
         if (data && data.length > 0) {
           data.forEach(template => {
             const card = createCard(
@@ -572,13 +578,13 @@
         showError('加载提示词模板列表失败');
       }
     }
-    
+
     // 加载知识库列表
     async function loadCollections() {
       try {
         const container = document.getElementById('collectionList');
         container.innerHTML = '';
-        
+
         const card = document.createElement('div');
         card.className = 'col-12';
         card.innerHTML = `
@@ -599,13 +605,13 @@
         `;
         container.appendChild(card);
         loadKnowledgeFiles();
-        
+
       } catch (error) {
         console.error('加载知识库列表失败:', error);
         showError('加载知识库列表失败');
       }
     }
-    
+
     // 创建卡片组件
     function createCard(title, contentLines, id, editFn, deleteFn) {
       const card = document.createElement('div');
@@ -630,7 +636,7 @@
       `;
       return card;
     }
-    
+
     // 创建空状态
     function createEmptyState(icon, text) {
       return `
@@ -643,20 +649,20 @@
         </div>
       `;
     }
-    
+
     // 添加大模型
     async function addLLM() {
       const form = document.getElementById('addLLMForm');
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
-      
+
       try {
         const response = await fetch('/api/llm', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
           $('#addLLMModal').modal('hide');
           form.reset();
@@ -671,21 +677,21 @@
         showError('添加失败');
       }
     }
-    
+
     // 添加嵌入模型
     async function addEmbedding() {
       const form = document.getElementById('addEmbeddingForm');
       const formData = new FormData(form);
       let data = Object.fromEntries(formData.entries());
       data.default = formData.has('default');
-      
+
       try {
         const response = await fetch('/api/embeddings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
           $('#addEmbeddingModal').modal('hide');
           form.reset();
@@ -700,20 +706,20 @@
         showError('添加失败');
       }
     }
-    
+
     // 添加提示词模板
     async function addPromptTemplate() {
       const form = document.getElementById('addPromptTemplateForm');
       const formData = new FormData(form);
       const data = Object.fromEntries(formData.entries());
-      
+
       try {
         const response = await fetch('/api/prompt_template', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
           $('#addPromptTemplateModal').modal('hide');
           form.reset();
@@ -728,14 +734,14 @@
         showError('添加失败');
       }
     }
-    
+
     // 编辑大模型
     async function editLLM(id) {
       try {
         const response = await fetch('/api/llm/list');
         const { data } = await response.json();
         const llm = data.find(l => l.llm_id === id);
-        
+
         if (llm) {
           document.getElementById('editModalTitle').textContent = '编辑大模型';
           document.getElementById('editModalBody').innerHTML = `
@@ -770,14 +776,14 @@
         showError('获取详情失败');
       }
     }
-    
+
     // 编辑嵌入模型
     async function editEmbedding(id) {
       try {
         const response = await fetch('/api/embeddings/list');
         const { data } = await response.json();
         const embedding = data.find(e => e.embeddings_id === id);
-        
+
         if (embedding) {
           document.getElementById('editModalTitle').textContent = '编辑嵌入模型';
           document.getElementById('editModalBody').innerHTML = `
@@ -812,14 +818,14 @@
         showError('获取详情失败');
       }
     }
-    
+
     // 编辑提示词模板
     async function editPromptTemplate(id) {
       try {
         const response = await fetch('/api/prompt_template/list');
         const { data } = await response.json();
         const template = data.find(t => t.id === id);
-        
+
         if (template) {
           document.getElementById('editModalTitle').textContent = '编辑提示词模板';
           document.getElementById('editModalBody').innerHTML = `
@@ -842,13 +848,13 @@
         showError('获取详情失败');
       }
     }
-    
+
     // 保存编辑
     async function saveEdit() {
       const form = document.getElementById('editForm');
       const formData = new FormData(form);
       let data = Object.fromEntries(formData.entries());
-      
+
       try {
         let endpoint = '';
         if (data.llm_id) {
@@ -859,15 +865,15 @@
         } else if (data.prompt_template_id) {
           endpoint = '/api/prompt_template';
         }
-        
+
         if (!endpoint) return;
-        
+
         const response = await fetch(endpoint, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
           $('#editModal').modal('hide');
           if (data.llm_id) loadLLMs();
@@ -883,7 +889,7 @@
         showError('保存失败');
       }
     }
-    
+
     // 删除项目
     async function deleteItem(endpoint, id, typeName, callback) {
       const result = await Swal.fire({
@@ -894,7 +900,7 @@
         confirmButtonText: '确定删除',
         cancelButtonText: '取消'
       });
-      
+
       if (result.isConfirmed) {
         try {
           const response = await fetch(endpoint, {
@@ -902,7 +908,7 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ [Object.keys(id)[0]]: Object.values(id)[0] })
           });
-          
+
           if (response.ok) {
             callback();
             showSuccess('删除成功');
@@ -916,22 +922,22 @@
         }
       }
     }
-    
+
     // 删除大模型
     async function deleteLLM(id) {
       deleteItem('/api/llm', { llm_id: id }, '大模型', loadLLMs);
     }
-    
+
     // 删除嵌入模型
     async function deleteEmbedding(id) {
       deleteItem('/api/embeddings', { embeddings_id: id }, '嵌入模型', loadEmbeddings);
     }
-    
+
     // 删除提示词模板
     async function deletePromptTemplate(id) {
       deleteItem('/api/prompt_template', { prompt_template_id: id }, '提示词模板', loadPromptTemplates);
     }
-    
+
     // 快速编辑嵌入模型
     async function quickEditEmbedding(id, checked) {
       try {
@@ -941,7 +947,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(requestData)
         });
-        
+
         if (response.ok) {
           loadEmbeddings();
         } else {
@@ -953,14 +959,14 @@
         showError('保存失败');
       }
     }
-    
+
     // 加载知识库文件列表
     async function loadKnowledgeFiles() {
       try {
         const response = await fetch(`/api/knowledge/list`);
         const { data } = await response.json();
         const fileListContainer = document.getElementById(`fileList`);
-        
+
         if (data && data.length > 0) {
           fileListContainer.innerHTML = `
             <table class="table table-sm table-hover">
@@ -999,13 +1005,13 @@
         fileListContainer.innerHTML = '<p class="text-danger">加载失败</p>';
       }
     }
-    
+
     // 显示上传文件模态框
     function showUploadFileModal() {
       loadEmbeddingsForSelector();
       $('#addKnowledgeFileModal').modal('show');
     }
-    
+
     // 加载嵌入模型选项
     async function loadEmbeddingsForSelector(selectorId = 'embeddingsSelector') {
       try {
@@ -1013,7 +1019,7 @@
         const { data } = await response.json();
         const selector = document.getElementById(selectorId);
         selector.innerHTML = '';
-        
+
         if (data && data.length > 0) {
           data.forEach(embedding => {
             const option = document.createElement('option');
@@ -1026,20 +1032,20 @@
         console.error('加载嵌入模型选项失败:', error);
       }
     }
-    
+
     // 上传知识库文件
     async function uploadKnowledgeFile() {
       const form = document.getElementById('addKnowledgeFileForm');
       const formData = new FormData(form);
-      
+
       try {
         const response = await fetch('/api/knowledge', {
           method: 'POST',
           body: formData
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
           $('#addKnowledgeFileModal').modal('hide');
           form.reset();
@@ -1053,18 +1059,18 @@
         showError('上传失败');
       }
     }
-    
+
     // 编辑知识库文件
     async function editKnowledgeFile(fileName) {
       try {
         const response = await fetch(`/api/knowledge/list`);
         const { data } = await response.json();
         const fileInfo = data.find(f => f.filename === fileName);
-        
+
         if (fileInfo) {
           document.getElementById('editKnowledgeFileModal').querySelector('[name="filename"]').value = fileInfo.filename;
           document.getElementById('editKnowledgeFileModal').querySelector('[name="tags"]').value = fileInfo.tag_list.join(',');
-          
+
           // 加载嵌入模型列表并设置选中项
           await loadEmbeddingsForSelector('editEmbeddingsSelector');
           const selector = document.getElementById('editEmbeddingsSelector');
@@ -1074,7 +1080,7 @@
               break;
             }
           }
-          
+
           $('#editKnowledgeFileModal').modal('show');
         }
       } catch (error) {
@@ -1082,20 +1088,20 @@
         showError('获取详情失败');
       }
     }
-    
+
     // 更新知识库文件
     async function updateKnowledgeFile() {
       const form = document.getElementById('editKnowledgeFileForm');
       const formData = new FormData(form);
-      
+
       try {
         const response = await fetch('/api/knowledge', {
           method: 'PUT',
           body: formData
         });
-        
+
         const result = await response.json();
-        
+
         if (response.ok) {
           $('#editKnowledgeFileModal').modal('hide');
           form.reset();
@@ -1109,7 +1115,7 @@
         showError('更新失败');
       }
     }
-    
+
     // 删除知识库文件
     async function deleteKnowledgeFile(fileName) {
       const result = await Swal.fire({
@@ -1120,15 +1126,15 @@
         confirmButtonText: '确定删除',
         cancelButtonText: '取消'
       });
-      
+
       if (result.isConfirmed) {
         try {
           const response = await fetch(`/api/knowledge?filename=${encodeURIComponent(fileName)}`, {
             method: 'DELETE'
           });
-          
+
           const data = await response.json();
-          
+
           if (response.ok) {
             loadKnowledgeFiles();
             showSuccess('文件已删除');
@@ -1143,4 +1149,5 @@
     }
   </script>
 </body>
+
 </html>

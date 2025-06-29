@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-记录表，与对话表关联，多条记录属于一个对话
+聊天记录表，与对话表关联，多条记录属于一个对话
 
 Author: worship-dog
 Email: worship76@foxmail.com>

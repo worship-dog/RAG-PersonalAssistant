@@ -12,10 +12,11 @@ from app.utils.database import Session
 
 
 class LLMManager:
-    def get_llms(self, session: Session):
+    @staticmethod
+    def get_llm_list(session: Session):
         """
         查询所有LLM模型
-
+        :param session: 数据库会话
         :return: 包含模型信息的字典列表
         """
         llm_list = session.query(
@@ -35,10 +36,11 @@ class LLMManager:
         } for llm in llm_list]
         return rows
 
-    def add_llm(self, session: Session, source: str, name: str, base_url: str, api_key: str):
+    @staticmethod
+    def add_llm(session: Session, source: str, name: str, base_url: str, api_key: str):
         """
         新增LLM模型记录到数据库
-
+        :param session: 数据库会话
         :param source: 模型来源(ollama/openai/other)
         :param name: 模型名称
         :param base_url: 服务地址
@@ -54,29 +56,31 @@ class LLMManager:
         session.add(llm)
         session.commit()
 
-    def update_llm(self, session: Session, llm_id: int, **kwargs):
+    @staticmethod
+    def update_llm(session: Session, llm_id: int, **kwargs):
         """
         更新LLM模型记录
-
+        :param session: 数据库会话
         :param llm_id: 模型ID
         :param kwargs: 可更新字段(source, name, base_url, api_key)
         :return:
         """
-        llm = session.query(LLM).filter(LLM.id == llm_id).first()
+        llm = session.query(LLM).filter_by(id=llm_id).first()
         if llm:
             for key, value in kwargs.items():
                 if hasattr(llm, key):
                     setattr(llm, key, value)
             session.commit()
 
-    def delete_llm(self, session: Session, llm_id: int):
+    @staticmethod
+    def delete_llm(session: Session, llm_id: int):
         """
         根据ID删除LLM模型记录
-
+        :param session: 数据库会话
         :param llm_id: 要删除的模型ID
         :return: 如果删除成功返回True，未找到则返回False
         """
-        llm = session.query(LLM).filter(LLM.id == llm_id).first()
+        llm = session.query(LLM).filter_by(id=llm_id).first()
         if llm:
             session.delete(llm)
             session.commit()

@@ -12,7 +12,8 @@ from app.utils.database import Session
 
 
 class PromptTemplateManager:
-    def get_templates(self, session: Session):
+    @staticmethod
+    def get_templates(session: Session):
         """
         获取所有提示词模板
         :param session: 数据库会话
@@ -30,7 +31,8 @@ class PromptTemplateManager:
             "content": template.content
         } for template in templates]
 
-    def add_template(self, session: Session, name: str, content: str):
+    @staticmethod
+    def add_template(session: Session, name: str, content: str):
         """
         添加提示词模板
         :param session: 数据库会话
@@ -42,7 +44,8 @@ class PromptTemplateManager:
         session.add(template)
         session.commit()
 
-    def update_template(self, session: Session, prompt_template_id: int, **kwargs):
+    @staticmethod
+    def update_template(session: Session, prompt_template_id: int, **kwargs):
         """
         更新提示词模板
         :param session: 数据库会话
@@ -50,21 +53,22 @@ class PromptTemplateManager:
         :param kwargs: 可更新字段(name, content)
         :return:
         """
-        template = session.query(PromptTemplate).filter(PromptTemplate.id == prompt_template_id).first()
+        template = session.query(PromptTemplate).filter_by(id=prompt_template_id).first()
         if template:
             for key, value in kwargs.items():
                 if hasattr(template, key):
                     setattr(template, key, value)
             session.commit()
 
-    def delete_template(self, session: Session, template_id: int):
+    @staticmethod
+    def delete_template(session: Session, template_id: int):
         """
         删除提示词模板
         :param session: 数据库会话
         :param template_id: 要删除的模板ID
         :return: 如果删除成功返回True，未找到则返回False
         """
-        template = session.query(PromptTemplate).filter(PromptTemplate.id == template_id).first()
+        template = session.query(PromptTemplate).filter_by(id=template_id).first()
         if template:
             session.delete(template)
             session.commit()

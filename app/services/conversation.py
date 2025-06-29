@@ -16,7 +16,12 @@ from app.utils.history_message import history_message_manager
 
 class ConversationManager:
     @staticmethod
-    def create_conversation(session: Session, name: str):  # 修改参数
+    def create_conversation(session: Session, name: str):
+        """
+        创建对话
+        :param session: 数据库会话
+        :return:
+        """
         conversation = Conversation(name=name)
         session.add(conversation)
         session.commit()
@@ -24,9 +29,14 @@ class ConversationManager:
 
     @staticmethod
     def get_conversations(session: Session):
+        """
+        查询对话列表
+        :param session: 数据库会话
+        :return:
+        """
         conversations = session.query(
             Conversation.id,
-            Conversation.name  # 只返回 name 字段
+            Conversation.name
         ).order_by(desc(Conversation.update_time)).all()
 
         return [{

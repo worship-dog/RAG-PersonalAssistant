@@ -1,3 +1,11 @@
+# -*- coding: UTF-8 -*-
+"""
+大模型回答链条管理
+
+Author: worship-dog
+Email: worship76@foxmail.com>
+"""
+
 import json
 import hashlib
 

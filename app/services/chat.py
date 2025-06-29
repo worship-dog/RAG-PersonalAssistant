@@ -8,20 +8,31 @@ from app.utils.database import AsyncSession, Session
 
 class ChatManager:
     def __init__(self):
-        self.llm_dict = {}
-        self.embedding_dict = {}
-        self.prompt_dict  = {}
+        self.llm_dict = {}  # 大语言模型缓存
+        self.embedding_dict = {}  # 嵌入模型缓存
+        self.prompt_dict  = {}  # 提示词模板缓存
 
     async def astream_generate_answer(
             self,
-            timer,
             session: AsyncSession,
+            timer,
+            question: str,
             conversation_id: str,
             chat_id: str,
-            question: str,
-            llm_id: str=None,
+            llm_id: str,
             prompt_template_id: str=None
     ):
+        """
+        流式生成回答
+        :param session: 异步数据库连接
+        :param timer: 计时器
+        :param question: 用户问题
+        :param conversation_id: 对话id
+        :param chat_id: 聊天id
+        :param llm_id: 大模型id
+        :param prompt_template_id: 提示词模板id
+        :return:
+        """
         # 初始化大语言模型
         if llm_id in self.llm_dict:
             llm_chat = self.llm_dict[llm_id]
@@ -62,7 +73,10 @@ class ChatManager:
 **上下文**  
 {context}
 """
+
         timer.start_timer()  # 开始思考计时
+
+        # 根据提示词、大模型、嵌入模型，获取链条并流式生成回答
         chain = chain_manager.get_chain(prompt_template_info, llm_chat, embeddings)
         async for token in chain.astream(
             input={"input": question},
@@ -70,6 +84,7 @@ class ChatManager:
         ):
             yield token
 
+    # 存储聊天记录
     @staticmethod
     async def save_chat(session: AsyncSession, answer, think_time, **data):
         if data.get("chat_id"):
@@ -89,7 +104,8 @@ class ChatManager:
             flag_modified(chat, "chat_content")  # 标记chat_content被修改
         await session.commit()
         return chat.id
-    
+
+    # 从数据库查询历史聊天记录
     @staticmethod
     def get_chats(session: Session, conversation_id):
         chat_list = session.query(Chat.chat_content).filter_by(

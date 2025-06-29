@@ -1,3 +1,4 @@
+<!-- 聊天页面 -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 
@@ -21,7 +22,7 @@
       --text-medium: #495057;
       --shadow-light: 0 2px 5px rgba(0, 0, 0, 0.05);
     }
-    
+
     body {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -143,7 +144,7 @@
       margin-bottom: 10px;
     }
 
-    .message-thinking { 
+    .message-thinking {
       margin-right: auto;
       width: fit-content;
       max-width: 80%;
@@ -331,9 +332,11 @@
       0% {
         transform: translateY(0);
       }
+
       50% {
         transform: translateY(-5px);
       }
+
       100% {
         transform: translateY(0);
       }
@@ -480,11 +483,11 @@
             moreBtn.className = 'btn btn-sm btn-outline-secondary more-btn';
             moreBtn.innerHTML = '<i class="bi bi-three-dots-vertical"></i>';
             item.appendChild(moreBtn);
-            
+
             item.addEventListener('click', () => {
               selectConversation(conversation.id, conversation.name);
             });
-            
+
             moreBtn.addEventListener('click', (e) => {
               e.stopPropagation();
               showConversationOptions(conversation);
@@ -538,7 +541,7 @@
           }).then(() => {
             loadConversations();
             selectConversation(conversation.id, editResult.value);
-        });
+          });
         }
       });
     }
@@ -800,28 +803,28 @@
     function addMessage(type, content) {
       const messageDiv = document.createElement('div');
       messageDiv.className = `message message-${type}`;
-      
+
       const contentDiv = document.createElement('div');
       contentDiv.className = 'message-content';
-      
+
       // 处理包含思考内容的消息
       if (type === 'ai' && content.includes('<think>')) {
         const thinkRegex = /<think>([\s\S]*?)<\/think>/;
         const thinkMatch = content.match(thinkRegex);
-        
+
         if (thinkMatch) {
           const thinkingContent = thinkMatch[1].trim();
           const answerContent = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
-          
+
           // 创建思考内容元素
           if (thinkingContent) {
             const thinkingDiv = document.createElement('div');
             thinkingDiv.className = 'message message-thinking';
-            
+
             const toggleBtn = document.createElement('button');
             toggleBtn.className = 'btn btn-sm btn-link thinking-toggle';
             toggleBtn.innerHTML = '<i class="bi bi-chevron-right"></i> 思考过程';
-            toggleBtn.addEventListener('click', function() {
+            toggleBtn.addEventListener('click', function () {
               const contentDiv = this.nextElementSibling;
               const icon = this.querySelector('i');
               if (contentDiv.style.display === 'none') {
@@ -847,7 +850,7 @@
             separator.className = 'message-separator';
             chatMessages.appendChild(separator);
           }
-          
+
           // 添加回答内容
           if (answerContent) {
             contentDiv.innerHTML = marked.parse(answerContent);
@@ -859,7 +862,7 @@
         // 普通消息
         contentDiv.innerHTML = type === 'ai' ? marked.parse(content) : content;
       }
-      
+
       messageDiv.appendChild(contentDiv);
       chatMessages.appendChild(messageDiv);
       scrollToBottom();
@@ -880,28 +883,28 @@
       const indicator = document.getElementById('typingIndicator');
       if (indicator) {
         let displayContent = '';
-        
+
         // 检查是否包含思考内容
         if (content.includes('<think>')) {
           const thinkRegex = /<think>([\s\S]*?)<\/think>/;
           const thinkMatch = content.match(thinkRegex);
-          
+
           if (thinkMatch) {
             const thinkingContent = thinkMatch[1].trim();
             const answerContent = content.replace(/<think>[\s\S]*?<\/think>/, '').trim();
-            
+
             // 添加思考内容
             if (thinkingContent) {
               displayContent += '<div class="thinking-content">';
               displayContent += marked.parse(thinkingContent);
               displayContent += '</div>';
-              
+
               // 添加分隔线
               if (answerContent) {
                 displayContent += '<hr>';
               }
             }
-            
+
             // 添加回答内容
             if (answerContent) {
               displayContent += marked.parse(answerContent);
@@ -912,7 +915,7 @@
         } else {
           displayContent = marked.parse(content);
         }
-        
+
         indicator.innerHTML = displayContent;
       }
     }
@@ -927,7 +930,7 @@
     function scrollToBottom() {
       chatMessages.scrollTop = chatMessages.scrollHeight;
     }
-    
+
     // 加载提示词模板列表
     async function loadPromptTemplates() {
       try {
@@ -937,7 +940,7 @@
         if (result.code === 200 && result.data) {
           const selector = document.getElementById('promptTemplateSelector');
           selector.innerHTML = '<option value="">默认提示词</option>';
-          
+
           result.data.forEach(template => {
             const option = document.createElement('option');
             option.value = template.id;
@@ -977,4 +980,5 @@
     }
   </script>
 </body>
+
 </html>

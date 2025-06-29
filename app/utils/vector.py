@@ -1,3 +1,10 @@
+# -*- coding: UTF-8 -*-
+"""
+向量数据库连接管理
+
+Author: worship-dog
+Email: worship76@foxmail.com>
+"""
 from langchain_ollama import OllamaEmbeddings
 from langchain_postgres import PGVector
 

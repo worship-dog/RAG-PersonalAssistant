@@ -9,6 +9,8 @@ Email: worship76@foxmail.com>
 from pydantic import create_model
 from sys import modules
 
+
+# 数据库配置
 db_config = {
     "db_host": (str, "localhost"),
     "db_port": (str, "5432"),
@@ -19,21 +21,26 @@ db_config = {
     "max_overflow": (int, 20)
 }
 
+# redis配置
 redis_config = {
     "host": (str, "localhost"),
     "port": (int, 6379),
     "db": (int, 0),
 }
 
-HISTORY_MAX_LENGTH = 40
-HISTORY_EXPIRE_TIME = 60 * 60 * 24
+# 历史聊天记录配置
+HISTORY_MAX_LENGTH = 40  # 历史聊天记录最大长度
+HISTORY_EXPIRE_TIME = 60 * 60 * 24 * 7  # 历史聊天记录在Redis中的过期时间, 单位秒, 7天
 
-MIN_SIMILARITY = 0.7
+# 知识库配置
+MIN_SIMILARITY = 0.7  # 知识库检索的最小相似度
 
-ROUTER_PREFIX = "/api"
+# 路由配置
+ROUTER_PREFIX = "/api"  # 路由前缀
 
-USERNAME = ""
-AVATAR = ""
+# 用户配置
+USERNAME = ""  # 用户名
+AVATAR = ""  # 用户头像
 
 
 # 字典转对象
