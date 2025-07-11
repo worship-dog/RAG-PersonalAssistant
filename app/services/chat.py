@@ -78,10 +78,14 @@ class ChatManager:
 
         # 根据提示词、大模型、嵌入模型，获取链条并流式生成回答
         chain = chain_manager.get_chain(prompt_template_info, llm_chat, embeddings)
+        is_first = True
         async for token in chain.astream(
             input={"input": question},
             config={"configurable": {"session_id": conversation_id}}
         ):
+            if is_first and "think" not in token:
+                is_first = False
+                yield "<think>" + token
             yield token
 
     # 存储聊天记录
