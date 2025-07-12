@@ -38,7 +38,7 @@ MIN_SIMILARITY = 0.7  # 知识库检索的最小相似度
 # 路由配置
 ROUTER_PREFIX = "/api"  # 路由前缀
 
-# 用户配置
+# 用户配置(未使用)
 USERNAME = ""  # 用户名
 AVATAR = ""  # 用户头像
 
