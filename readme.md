@@ -93,6 +93,6 @@ tips: 服务器性能很差，仅用于展示效果
 
 
 ## 打赏
-如果项目对你有帮助的话，请我喝杯可乐吧~
+如果项目对你有帮助的话，请我喝杯可乐吧~  
 <img src="static/image/wechat.png" width="300" height="300">
 <img src="static/image/alipay.jpg" width="300" height="300">
