@@ -1,4 +1,4 @@
-# [PersonalAssistant](https://github.com/worship-dog/PersonalAssistant)
+# [RAG-PersonalAssistant](https://github.com/worship-dog/RAG-PersonalAssistant)
 
 ## 项目介绍  
 这是一个简单且基础的RAG玩具项目
@@ -51,7 +51,7 @@ tips: 服务器性能很差，仅用于展示效果
    4. 安装[Redis](https://www.redis.net.cn/)
 3. 运行项目
    1. 拉取项目代码（选择合适路径运行以下命令，例如：F:\Project\Github）  
-      `git clone https://github.com/worship-dog/PersonalAssistant.git`
+      `git clone https://github.com/worship-dog/RAG-PersonalAssistant.git`
    2. 拷贝项目目录下/app/config_base.py为/app/config.py
    3. 修改数据库连接参数与其他配置参数
    4. 建立虚拟环境  
