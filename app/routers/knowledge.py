@@ -6,12 +6,16 @@ Author: worship-dog
 Email: worship76@foxmail.com>
 """
 from datetime import datetime
+import os
+import tempfile
 
 from fastapi import APIRouter, Depends, Form, File, Query, UploadFile, HTTPException
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from app.models import LangchainPGEmbedding
 from app.services.embeddings import embeddings_manager
 from app.utils.database import get_sync_db, Session
+from app.utils.file_tools import read_file
 from app.utils.vector import vector_manager
 
 
@@ -37,13 +41,54 @@ def add_knowledge(
     if vector_store.similarity_search(file.filename, filter={"filename": file.filename}):
         raise HTTPException(status_code=400, detail="文件名重复")
 
-    # TODO: 解析不同文件格式
-    vector_store.add_texts([file.file.read()], [{
+    # 获取文件类型
+    file_type = file.filename.split(".")[-1]
+    
+    # 创建临时文件并保存上传的文件内容
+    with tempfile.NamedTemporaryFile(delete=False, suffix=f'.{file_type}') as temp_file:
+        temp_file.write(file.file.read())
+        temp_file_path = temp_file.name
+    
+    try:
+        # 使用 read_file 函数读取文件内容
+        file_content = read_file(temp_file_path, file_type)
+        # 重置文件指针，以便后续操作可以重新读取文件内容
+        file.file.seek(0)
+    except ValueError as e:
+        # 捕获并记录文件类型不支持的错误
+        print(f"不支持的文件类型: {file_type}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        # 发生异常时记录错误并继续使用原始文件内容
+        print(f"读取文件时出错: {str(e)}")
+        file.file.seek(0)
+        raise HTTPException(status_code=500, detail="文件读取错误")
+
+    if not file_content:
+        raise HTTPException(status_code=400, detail="未识别到有效内容")
+
+    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    # 文本内容分块嵌入
+    split_texts = splitter.split_text(file_content)
+    vector_store.add_texts(split_texts, [{
         "filename": file.filename,
         "modify_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         "tag_list": list(set(tags.split(","))) if tags else [],
-        "index": 0
-    }])
+        "index": i + 1
+    }for i in range(len(split_texts))])
+    # 清理临时文件
+    if os.path.exists(temp_file_path):
+        os.unlink(temp_file_path)
+
+    # # 新增知识对象
+    # knowledge = Knowledge(
+    #     name=file.filename,
+    #     knowledge={"file_content": file_content},
+    #     index=0
+    # )
+    # session.add(knowledge)
+    # session.commit()
+        
     return {"code": 200, "msg": "success"}
 
 
@@ -92,9 +137,10 @@ def del_knowledge(
     session: Session = Depends(get_sync_db),
     filename: str = Query(...),
 ):
-    file = session.query(LangchainPGEmbedding).filter(
-        LangchainPGEmbedding.cmetadata.op("->>")("filename") == filename).first()
-    session.delete(file)
+    file_list = session.query(LangchainPGEmbedding).filter(
+        LangchainPGEmbedding.cmetadata.op("->>")("filename") == filename).all()
+    for file in file_list:
+        session.delete(file)
     session.commit()
     return {"code": 200, "msg": "success"}
 
@@ -105,7 +151,7 @@ def get_knowledge_list(
 ):
     rows = []
     file_list = session.query(LangchainPGEmbedding.cmetadata).filter(
-        LangchainPGEmbedding.cmetadata.op("->>")("index") == "0").order_by(
+        LangchainPGEmbedding.cmetadata.op("->>")("index") == "1").order_by(
             LangchainPGEmbedding.cmetadata.op("->>")("modify_time").desc()
         ).all()
     for file in file_list:

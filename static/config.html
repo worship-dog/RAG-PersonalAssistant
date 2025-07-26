@@ -1034,6 +1034,16 @@
       const form = document.getElementById('addKnowledgeFileForm');
       const formData = new FormData(form);
 
+      // 显示上传中的加载动画
+      const loadingAlert = Swal.fire({
+        title: '上传中...',
+        text: '正在上传文件，请稍候',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       try {
         const response = await fetch('/api/knowledge', {
           method: 'POST',
@@ -1041,6 +1051,9 @@
         });
 
         const result = await response.json();
+        
+        // 关闭加载动画
+        loadingAlert.close();
 
         if (response.ok) {
           $('#addKnowledgeFileModal').modal('hide');
@@ -1090,6 +1103,16 @@
       const form = document.getElementById('editKnowledgeFileForm');
       const formData = new FormData(form);
 
+      // 显示更新中的加载动画
+      const loadingAlert = Swal.fire({
+        title: '更新中...',
+        text: '正在更新文件，请稍候',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
       try {
         const response = await fetch('/api/knowledge', {
           method: 'PUT',
@@ -1097,6 +1120,9 @@
         });
 
         const result = await response.json();
+        
+        // 关闭加载动画
+        loadingAlert.close();
 
         if (response.ok) {
           $('#editKnowledgeFileModal').modal('hide');
