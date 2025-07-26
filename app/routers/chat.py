@@ -103,9 +103,8 @@ async def sse_chat_v2(request: Request):
     """
     SSE 流式问答
     :param request: 
-        client_id, 
         conversation_id, 
-        chat_id, 
+        new_conversation, 
         question, 
         llm_id, 
         prompt_template_id
@@ -133,6 +132,12 @@ async def sse_chat_v2(request: Request):
                                         think_time = timer.elapsed
                                 answer += chunk
                                 yield ServerSentEvent(data=json.dumps({"data": chunk}), event="message")
+
+                            if data["new_conversation"]:
+                                # 首次回答，为对话命名
+                                conversation_name = chat_manager.named_conversation(answer, **data)
+                                yield ServerSentEvent(data=json.dumps({"content": conversation_name}), event="title")
+
                             yield ServerSentEvent(data="", event="finish")
                         except ValueError as e:
                             logger.error(e)

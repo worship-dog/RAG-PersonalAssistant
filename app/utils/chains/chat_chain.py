@@ -18,7 +18,7 @@ from app.utils.history_message import history_message_manager
 from app.utils.vector import vector_manager
 
 
-class ChainManager:
+class ChatChainManager:
     def __init__(self):
         self.chain_dict = {}
 
@@ -83,4 +83,4 @@ class ChainManager:
         return doc_str
 
 
-chain_manager = ChainManager()
+chat_chain_manager = ChatChainManager()

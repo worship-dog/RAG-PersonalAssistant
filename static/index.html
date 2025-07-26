@@ -609,7 +609,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name: '新对话 ' + new Date().toLocaleTimeString()
+            name: '新对话'
           })
         });
 
@@ -710,7 +710,7 @@
           question: message,
           llm_id: modelSelector.value,
           prompt_template_id: promptTemplateId,
-          chat_id: ""
+          new_conversation: currentConversationTitle.textContent === "新对话" ? true : false
         }),
         signal: currentSSEController.signal
       })
@@ -764,6 +764,20 @@
                 console.error('Error parsing SSE message data:', e);
               }
               break;
+            case 'title':
+              const parsedData = JSON.parse(eventData);
+              // currentConversationTitle.textContent = parsedData.content;
+              fetch('/api/conversation', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  conversation_id: currentConversationId,
+                  name: parsedData.content
+                })
+              }).then(() => {
+                loadConversations();
+                selectConversation(currentConversationId, parsedData.content);
+              });
             case 'finish':
               isGenerating = false;
               removeTypingIndicator();

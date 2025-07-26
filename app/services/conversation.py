@@ -20,6 +20,7 @@ class ConversationManager:
         """
         创建对话
         :param session: 数据库会话
+        :param name: 会话名称
         :return:
         """
         conversation = Conversation(name=name)

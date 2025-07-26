@@ -1,8 +1,10 @@
+import re
+
 from sqlalchemy import select
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.models import Chat, Embeddings, LLM, PromptTemplate
-from app.utils.chain import chain_manager
+from app.utils.chains import chat_chain_manager, conversation_chain_manager
 from app.utils.database import AsyncSession, Session
 
 
@@ -18,9 +20,9 @@ class ChatManager:
             timer,
             question: str,
             conversation_id: str,
-            chat_id: str,
             llm_id: str,
-            prompt_template_id: str=None
+            prompt_template_id: str=None,
+            **kwargs
     ):
         """
         流式生成回答
@@ -28,7 +30,6 @@ class ChatManager:
         :param timer: 计时器
         :param question: 用户问题
         :param conversation_id: 对话id
-        :param chat_id: 聊天id
         :param llm_id: 大模型id
         :param prompt_template_id: 提示词模板id
         :return:
@@ -77,7 +78,7 @@ class ChatManager:
         timer.start_timer()  # 开始思考计时
 
         # 根据提示词、大模型、嵌入模型，获取链条并流式生成回答
-        chain = chain_manager.get_chain(prompt_template_info, llm_chat, embeddings)
+        chain = chat_chain_manager.get_chain(prompt_template_info, llm_chat, embeddings)
         is_first = True
         async for token in chain.astream(
             input={"input": question},
@@ -87,6 +88,17 @@ class ChatManager:
                 is_first = False
                 yield "<think>" + token
             yield token
+
+    def named_conversation(self, answer, question, llm_id: str, **kwargs):
+        llm_chat = self.llm_dict[llm_id]
+        chain = conversation_chain_manager.get_chain(llm_chat)
+
+        # 移除审核结果思考内容
+        pattern = r"<think>.*?</think>"
+        answer = re.sub(pattern, "", answer, flags=re.DOTALL)
+
+        conversation_name = chain.invoke({"question": question, "answer": answer})
+        return conversation_name
 
     # 存储聊天记录
     @staticmethod
