@@ -23,12 +23,6 @@ class ChatChainManager:
         self.chain_dict = {}
 
     def _create_chain(self, prompt_template_info, llm, chain_key, embeddings):
-        vector_store = vector_manager.get_vector(embeddings, async_mode=True)
-        retriever = vector_store.as_retriever(
-            search_type="similarity_score_threshold", 
-            search_kwargs={"k": 6, "score_threshold": MIN_SIMILARITY}
-        )
-
         chat_prompt_template = ChatPromptTemplate.from_messages([
             ("system", prompt_template_info["content"]),
             MessagesPlaceholder(variable_name="history"),
@@ -38,7 +32,12 @@ class ChatChainManager:
         chain = (
             RunnableParallel({
                 "input": lambda x:x["input"] ,
-                "context": RunnableLambda(lambda x:x["input"]) | retriever | self.format_docs,
+                "context":
+                    RunnableLambda(lambda x: self.get_docs(**{
+                        "embeddings": embeddings,
+                        "question": x["input"],
+                        "tags": x["tags"],
+                    })),
                 "history": lambda x:x["history"]
             })
             | history_message_manager.limit_history_messages
@@ -60,6 +59,32 @@ class ChatChainManager:
 
         return chain_with_history
 
+    def get_docs(self, embeddings, question, tags="", search_type="mmr"):
+        vector_store = vector_manager.get_vector(embeddings, async_mode=False)
+
+        filter_dict = {}
+        if tags:
+            filter_dict = {"$or": []}
+            for tag in tags.split(","):
+                filter_dict["$or"].append({"tags": {"$like": f"%{tag}%"}})
+
+        if search_type == "mmr":
+            docs = vector_store.max_marginal_relevance_search(
+                query=question,
+                k=100,
+                fetch_k=1000,
+                filter=filter_dict
+            )
+        else:
+            docs = vector_store.similarity_search_with_relevance_scores(
+                query=question,
+                k=100,
+                score_threshold=MIN_SIMILARITY,
+                filter=filter_dict
+            )
+
+        return self.format_docs(docs, search_type)
+
     def get_chain(self, prompt_template_info, llm, embeddings):
         llm_name = llm.model if hasattr(llm, "model") else llm.model_name
         # 生成提示词模板的唯一指纹
@@ -78,8 +103,11 @@ class ChatChainManager:
         return x
 
     @staticmethod
-    def format_docs(docs):
-        doc_str = "\n\n".join([doc.page_content for doc in docs])
+    def format_docs(docs, search_type):
+        if search_type == "mmr":
+            doc_str = "\n\n".join([doc.page_content for doc in docs])
+        else:
+            doc_str = "\n\n".join([doc.page_content for doc, _ in docs])
         return doc_str
 
 

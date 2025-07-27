@@ -22,6 +22,7 @@ class ChatManager:
             conversation_id: str,
             llm_id: str,
             prompt_template_id: str=None,
+            tags: str="",
             **kwargs
     ):
         """
@@ -32,6 +33,7 @@ class ChatManager:
         :param conversation_id: 对话id
         :param llm_id: 大模型id
         :param prompt_template_id: 提示词模板id
+        :param tags: 知识库文件标签
         :return:
         """
         # 初始化大语言模型
@@ -81,7 +83,7 @@ class ChatManager:
         chain = chat_chain_manager.get_chain(prompt_template_info, llm_chat, embeddings)
         is_first = True
         async for token in chain.astream(
-            input={"input": question},
+            input={"input": question, "tags": tags},
             config={"configurable": {"session_id": conversation_id}}
         ):
             if is_first and "think" not in token:

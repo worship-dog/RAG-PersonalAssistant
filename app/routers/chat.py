@@ -107,7 +107,8 @@ async def sse_chat_v2(request: Request):
         new_conversation, 
         question, 
         llm_id, 
-        prompt_template_id
+        prompt_template_id,
+        tags
     :return: SSE消息流
     """
     logger.info("建立问答SSE连接")

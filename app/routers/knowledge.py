@@ -34,7 +34,7 @@ def add_knowledge(
     embeddings = embeddings_manager.get_embeddings_by_id(session, embeddings_id)
     if not embeddings:
         return {"code": 404, "msg": "嵌入模型不存在"}
-    
+
     vector_store = vector_manager.get_vector(embeddings.init())
 
     # 验证文件名是否重复
@@ -67,13 +67,13 @@ def add_knowledge(
     if not file_content:
         raise HTTPException(status_code=400, detail="未识别到有效内容")
 
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
     # 文本内容分块嵌入
     split_texts = splitter.split_text(file_content)
     vector_store.add_texts(split_texts, [{
         "filename": file.filename,
         "modify_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "tag_list": list(set(tags.split(","))) if tags else [],
+        "tags": tags,
         "index": i + 1
     }for i in range(len(split_texts))])
     # 清理临时文件
@@ -124,7 +124,7 @@ def edit_knowledge(
         knowledge.cmetadata = {
             "filename": filename,
             "modify_time": modify_time,
-            "tag_list": list(set(tags.split(","))) if tags else [],
+            "tags": tags,
             "index": knowledge.cmetadata.get("index")
         }
     session.commit()
@@ -157,3 +157,17 @@ def get_knowledge_list(
     for file in file_list:
         rows.append(file.cmetadata)
     return {"code": 200, "msg": "success", "data": rows}
+
+
+@router.get("/knowledge/tags")
+def get_knowledge_tags(
+    session: Session = Depends(get_sync_db)
+):
+    tag_list = []
+    file_list = session.query(LangchainPGEmbedding.cmetadata).group_by(LangchainPGEmbedding.cmetadata).all()
+    for file in file_list:
+        tags = file.cmetadata.get("tags")
+        if not tags:
+            continue
+        tag_list.extend(tags.split(","))
+    return {"code": 200, "msg": "success", "data": list(set(tag_list))}

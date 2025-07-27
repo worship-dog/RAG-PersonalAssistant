@@ -978,7 +978,7 @@
                 ${data.map(fileInfo => `
                   <tr>
                     <td>${fileInfo.filename}</td>
-                    <td>${fileInfo.tag_list}</td>
+                    <td>${fileInfo.tags}</td>
                     <td>${fileInfo.modify_time}</td>
                     <td>
                       <button class="btn btn-sm btn-outline-primary" onclick="editKnowledgeFile('${fileInfo.filename}')">
@@ -1078,7 +1078,7 @@
 
         if (fileInfo) {
           document.getElementById('editKnowledgeFileModal').querySelector('[name="filename"]').value = fileInfo.filename;
-          document.getElementById('editKnowledgeFileModal').querySelector('[name="tags"]').value = fileInfo.tag_list.join(',');
+          document.getElementById('editKnowledgeFileModal').querySelector('[name="tags"]').value = fileInfo.tags;
 
           // 加载嵌入模型列表并设置选中项
           await loadEmbeddingsForSelector('editEmbeddingsSelector');

@@ -328,6 +328,38 @@
       border-color: #80bdff;
       box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
+    
+    /* 标签选择区域样式 */
+    .tag-selector {
+      display: none;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .tag-item {
+      display: inline-block;
+      background-color: #e9ecef;
+      color: #495057;
+      padding: 4px 10px;
+      margin: 3px;
+      border-radius: 15px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    
+    .tag-item.selected {
+      background-color: #007bff;
+      color: white;
+    }
+    
+    .tag-item:hover {
+      opacity: 0.8;
+    }
 
     @keyframes typing {
       0% {
@@ -399,6 +431,9 @@
               </select>
             </div>
             <div class="col">
+              <div class="tag-selector" id="tagSelector">
+                <!-- 标签将通过JS动态加载 -->
+              </div>
               <div class="input-group">
                 <textarea class="form-control chat-input" id="messageInput" placeholder="输入消息..." rows="1"></textarea>
                 <button class="btn btn-primary send-btn" id="sendBtn">
@@ -418,6 +453,7 @@
     let currentSSEController = null;
     let isGenerating = false;
     let currentAnswer = '';
+    let selectedTags = []; // 存储选中的标签
 
     // DOM元素
     const conversationList = document.getElementById('conversationList');
@@ -429,6 +465,7 @@
     const emptyState = document.getElementById('emptyState');
     const chatInterface = document.getElementById('chatInterface');
     const currentConversationTitle = document.getElementById('currentConversationTitle');
+    const tagSelector = document.getElementById('tagSelector'); // 标签选择区域
 
     // 页面加载完成后初始化
     document.addEventListener('DOMContentLoaded', async () => {
@@ -458,6 +495,17 @@
       messageInput.addEventListener('input', () => {
         messageInput.style.height = 'auto';
         messageInput.style.height = (messageInput.scrollHeight < 120) ? messageInput.scrollHeight + 'px' : '120px';
+      });
+      
+      // 监听输入框的输入事件，检测#号输入
+      messageInput.addEventListener('input', async (e) => {
+        const value = e.target.value;
+        const lastChar = value.slice(-1);
+        
+        // 当输入#号时触发标签选择功能
+        if (lastChar === '#') {
+          await loadKnowledgeTags();
+        }
       });
     }
 
@@ -605,6 +653,10 @@
     // 创建新对话
     async function createNewConversation() {
       try {
+        // 创建新对话时关闭标签选择区域并清空选中的标签
+        tagSelector.style.display = 'none';
+        selectedTags = [];
+        
         const response = await fetch('/api/conversation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -640,6 +692,11 @@
       currentConversationTitle.textContent = conversationName;
       emptyState.style.display = 'none';
       chatInterface.style.display = 'flex';
+      
+      // 切换对话时关闭标签选择区域并清空选中的标签
+      tagSelector.style.display = 'none';
+      selectedTags = [];
+      
       await loadChatHistory(conversationId);
     }
 
@@ -668,6 +725,85 @@
       }
     }
 
+    // 加载知识库标签
+    async function loadKnowledgeTags() {
+      try {
+        // 移除输入框中的#号
+        const currentValue = messageInput.value;
+        messageInput.value = currentValue.slice(0, -1);
+        
+        const response = await fetch('/api/knowledge/tags');
+        const result = await response.json();
+        
+        if (result.code === 200 && result.data) {
+          showTagSelector(result.data);
+        } else {
+          showError('获取标签失败');
+        }
+      } catch (error) {
+        console.error('获取知识库标签失败:', error);
+        showError('获取标签失败');
+      }
+    }
+    
+    // 显示标签选择区域
+    function showTagSelector(tags) {
+      if (tags.length === 0) {
+        showToast('暂无标签', 'info');
+        return;
+      }
+      
+      tagSelector.style.display = 'block';
+      tagSelector.innerHTML = '<strong>选择标签:</strong> ';
+      
+      tags.forEach(tag => {
+        const tagElement = document.createElement('span');
+        tagElement.className = 'tag-item';
+        tagElement.textContent = tag;
+        tagElement.dataset.tag = tag;
+        
+        // 检查标签是否已被选中
+        if (selectedTags.includes(tag)) {
+          tagElement.classList.add('selected');
+        }
+        
+        // 点击标签切换选中状态
+        tagElement.addEventListener('click', () => {
+          const tagValue = tagElement.dataset.tag;
+          const index = selectedTags.indexOf(tagValue);
+          
+          if (index > -1) {
+            // 如果已选中，则取消选中
+            selectedTags.splice(index, 1);
+            tagElement.classList.remove('selected');
+          } else {
+            // 如果未选中，则添加到选中列表
+            selectedTags.push(tagValue);
+            tagElement.classList.add('selected');
+          }
+        });
+        
+        tagSelector.appendChild(tagElement);
+      });
+      
+      // 添加关闭按钮
+      const closeBtn = document.createElement('span');
+      closeBtn.className = 'tag-item';
+      closeBtn.innerHTML = '&times;';
+      closeBtn.style.float = 'right';
+      closeBtn.addEventListener('click', () => {
+        tagSelector.style.display = 'none';
+        selectedTags = [];
+        // 清除所有选中状态
+        document.querySelectorAll('.tag-item').forEach(item => {
+          item.classList.remove('selected');
+        });
+      });
+      tagSelector.appendChild(closeBtn);
+      
+      scrollToBottom();
+    }
+    
     // 发送消息
     function sendMessage() {
       const message = messageInput.value.trim();
@@ -694,6 +830,9 @@
       // 获取当前选中的提示词模板ID
       const promptTemplateSelector = document.getElementById('promptTemplateSelector');
       const promptTemplateId = promptTemplateSelector.value;
+      
+      // 获取选中的标签
+      const tagsToSend = selectedTags.join(',');
 
       // 终止之前的SSE连接
       if (currentSSEController) currentSSEController.abort();
@@ -710,12 +849,17 @@
           question: message,
           llm_id: modelSelector.value,
           prompt_template_id: promptTemplateId,
-          new_conversation: currentConversationTitle.textContent === "新对话" ? true : false
+          new_conversation: currentConversationTitle.textContent === "新对话" ? true : false,
+          tags: tagsToSend  // 将标签作为独立参数传递
         }),
         signal: currentSSEController.signal
       })
         .then(processSSEResponse)
         .catch(handleSSEError);
+        
+      // 发送消息后隐藏标签选择区域并清空选中标签
+      // tagSelector.style.display = 'none';
+      // selectedTags = [];
     }
 
     // 处理SSE响应
